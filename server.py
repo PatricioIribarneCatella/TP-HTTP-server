@@ -1,5 +1,6 @@
 import socket
 import signal
+from utils import RequestParser
 from multiprocessing import Process, Queue
 
 class Server(object):
@@ -18,66 +19,14 @@ class Server(object):
         # Listen
         self.server_socket.listen(10)
 
+        # Make server's socket inheritable
         self.server_socket.set_inheritable(True)
         
         self.ip = ip
         self.port = port
         self.app = app
         self.num_workers = workers
-
-    def _get_line(self, client_connection, delimeter):
-
-        c = client_connection.recv(1)
-        line = ""
-
-        while (c.decode() != delimeter):
-            line = line + c.decode()
-            c = client_connection.recv(1)
-
-        print(line)
-
-        return line.rstrip('\r')
-
-    def _parse_request(self, client_connection):
-
-        header = {}
-        body = ""
-
-        # First line contains information about client´s request
-        request_line = self._get_line(client_connection, '\n')
-        (header['method'], header['path'], header['version']) = request_line.split()
-        
-        if (header['method'] != 'GET' and
-                header['method'] != 'DELETE'):
-            # Second line contains information about 'content-type'
-            next_line = self._get_line(client_connection, '\n')
-            header['content-type'] = next_line.split(": ")
-            # Third line contains information about 'content-length'
-            next_line = self._get_line(client_connection, '\n')
-            header['content-length'] = next_line.split(": ")
-            # Next line contains \n separator from body
-            client_connection.recv(1)
-            # Body begining
-            body = body.join(client_connection.recv(header['content-length']))
-        
-        return header, body
-
-    def _build_response(self, res_body, status):
-
-        json_headers = [
-                ('Content-Type', 'application/json'),
-                ('Content-Length', len(res_body))
-        ]
-
-        response = 'HTTP/1.1 {status}\n'.format(status=status)
-
-        for h in json_headers:
-            response += '{0}: {1}\n'.format(h[0], h[1])
-
-        response += '\n'
-        response += res_body
-
-        return response
+        self.parser = RequestParser()
 
     def _init_worker(self, w):
 
@@ -92,15 +41,17 @@ class Server(object):
                 client_connection, client_address = self.server_socket.accept()
                 print('Received connection: {}, in worker: {}'.format(client_address, w))
 
-                req_header, req_body = self._parse_request(client_connection)
+                req_header, req_body = self.parser.parse_request(client_connection)
 
                 # Send request to 'app' to handle it
                 res_body, status = self.app(req_header, req_body)
-                res = self._build_response(res_body, status)
+                
+                res = self.parser.build_response(res_body, status)
                 
                 print(res)
                 client_connection.sendall(res.encode())
                 client_connection.close()
+
             except KeyboardInterrupt:
                 quit = True
 
