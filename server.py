@@ -1,8 +1,6 @@
-import sys
 import socket
-import argparse
 import signal
-from multiprocessing import Process, Queue, Event
+from multiprocessing import Process, Queue
 
 class Server(object):
 
@@ -118,9 +116,12 @@ class Server(object):
             p = Process(target=self._init_worker, args=(i,))
             workers.append(p)
             p.start()
-
+        
+        # Set the ignore flag in main process
+        # for SIGINT signal
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
+        # Close server connection
         self.server_socket.close()
 
         # Wait to workers to finish
@@ -129,45 +130,4 @@ class Server(object):
 
         print('Server finished')
 
-def main(ip, port, workers, app_path):
-    
-    module, application = app_path.split(':')
-    module = __import__(module)
-    application = getattr(module, application)
-
-    server = Server(ip, port, workers, application)
-    print('Server at IP:{ip}, PORT:{port}'.format(ip=ip, port=port))
-    server.run()
-
-
-
-if __name__ == '__main__':
-    
-    parser = argparse.ArgumentParser(
-                description='HTTP server',
-                formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument(
-            '--ip',
-            default='localhost',
-            help='HTTP server IP'
-    )
-    parser.add_argument(
-            '--port',
-            type=int,
-            default=8888,
-            help='HTTP server PORT'
-    )
-    parser.add_argument(
-            '--workers',
-            type=int,
-            default=1,
-            help='Number of workers running the App'
-    )
-    parser.add_argument(
-            '--app',
-            help='The app that is going to be run in each worker (module:function)'
-    )
-    args = parser.parse_args()
-    
-    main(args.ip, args.port, args.workers, args.app)
 
