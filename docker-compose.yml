@@ -7,5 +7,4 @@ services:
                 ports:
                         - "8888:8888"
                 command: ["python3", "main.py", "--app=app_server:app", "--workers=3"]
-                privileged: true
 

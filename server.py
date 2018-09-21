@@ -21,7 +21,7 @@ class Server(object):
 
         # Make server's socket inheritable
         self.server_socket.set_inheritable(True)
-        
+  
         self.ip = ip
         self.port = port
         self.app = app
