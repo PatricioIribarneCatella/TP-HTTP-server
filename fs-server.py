@@ -40,7 +40,7 @@ class FSServer(object):
 
         logger.log('Worker: {} init'.format(w),
                     logger.levels["debug"],
-                    'http-server')
+                    'fs-server')
 
         while not quit:
 
@@ -50,7 +50,7 @@ class FSServer(object):
 
                 logger.log('Received connection: {}, in worker: {}'.format(client_address, w),
                             logger.levels["debug"],
-                            'http-server')
+                            'fs-server')
 
                 req_header, req_body = self.parser.parse_request(client_connection)
 
@@ -62,7 +62,7 @@ class FSServer(object):
                                 req_header["method"],
                                 req_header["path"],
                                 status), logger.levels["info"], 
-                                'http-server')
+                                'fs-server')
                 
                 res = self.parser.build_response(res_body, status)
                 
@@ -94,7 +94,7 @@ class FSServer(object):
         # Close server connection
         self.server_socket.close()
 
-        logger.init()
+        logger.init('fs-server')
         
         lt = Thread(target=logger.log_worker, args=(log_queue,))
         lt.start()

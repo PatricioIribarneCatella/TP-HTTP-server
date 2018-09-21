@@ -17,14 +17,14 @@ config = {
         },
         'file': {
             'class': 'logging.FileHandler',
-            'filename': 'http-server.log',
+            'filename': '',
             'mode': 'w',
             'level': 'INFO',
             'formatter': 'detailed',
         },
         'errors': {
             'class': 'logging.FileHandler',
-            'filename': 'http-server-errors.log',
+            'filename': '',
             'mode': 'w',
             'level': 'ERROR',
             'formatter': 'detailed',
@@ -42,7 +42,9 @@ levels = {
     "error": logging.ERROR
 }
 
-def init():
+def init(log_file_name):
+    config['handlers']['file']['filename'] = log_file_name + '.log'
+    config['handlers']['errors']['filename'] = log_file_name + '-errors.log'
     logging.config.dictConfig(config)
 
 def set_queue(q):

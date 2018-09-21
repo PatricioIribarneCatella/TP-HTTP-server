@@ -93,7 +93,7 @@ class Server(object):
         # Close server connection
         self.server_socket.close()
 
-        logger.init()
+        logger.init('http-server')
         
         lt = Thread(target=logger.log_worker, args=(log_queue,))
         lt.start()
