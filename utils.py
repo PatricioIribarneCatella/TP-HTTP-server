@@ -27,34 +27,24 @@ class RequestParser(object):
         body = ""
 
         # First line contains information about client´s request
-        request_line = self._get_line(client_connection, '\n')
-        (header['method'], header['path'], header['version']) = request_line.split()
+        line = self._get_line(client_connection, '\n')
+        (header['method'], header['path'], header['version']) = line.split()
         
         if (header['method'] != 'GET' and
                 header['method'] != 'DELETE'):
-            # Second line contains information about 'Server' (address)
-            next_line = self._get_line(client_connection, '\n')
-            header['host'] = next_line.split(": ")[1]
-            
-            # Third line contains information about 'user-agent'
-            next_line = self._get_line(client_connection, '\n')
-            header['user-agent'] = next_line.split(": ")[1]
 
-            # Fourth line contains information about 'accept'
-            next_line = self._get_line(client_connection, '\n')
-            header['accept'] = next_line.split(": ")[1]
+            while (line != ""):
+                
+                line = self._get_line(client_connection, '\n')
 
-            # Fifth line contains information about 'content-type'
-            next_line = self._get_line(client_connection, '\n')
-            header['content-type'] = next_line.split(": ")[1]
-            
-            # Sixth line contains information about 'content-length'
-            next_line = self._get_line(client_connection, '\n')
-            header['content-length'] = int(next_line.split(": ")[1])
-            
-            # Next line contains \n separator from body
-            client_connection.recv(1)
-            
+                field = line.split(": ")
+
+                if (field[0] == 'Content-Type'):
+                    header['content-type'] = field[1]
+
+                if (field[0] == 'Content-Length'):
+                    header['content-length'] = int(field[1])
+
             # Body begining
             data = client_connection.recv(header['content-length'] + 1)
             data = data.decode().rstrip('\r\n')
