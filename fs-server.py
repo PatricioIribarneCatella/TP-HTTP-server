@@ -3,11 +3,12 @@ import signal
 import logger
 from utils import RequestParser
 from threading import Thread
+from filemanager import FileManager
 from multiprocessing import Process, Queue
 
-class Server(object):
+class FSServer(object):
 
-    def __init__(self, ip, port, workers, app):
+    def __init__(self, ip, port, workers, cache_size):
        
         # Create the socket
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -27,9 +28,9 @@ class Server(object):
   
         self.ip = ip
         self.port = port
-        self.app = app
         self.num_workers = workers
         self.parser = RequestParser()
+        self.fm = FileManager(cache_size)
 
     def _init_worker(self, w, log_queue):
 
@@ -53,8 +54,8 @@ class Server(object):
 
                 req_header, req_body = self.parser.parse_request(client_connection)
 
-                # Send request to 'app' to handle it
-                res_body, status = self.app(req_header, req_body)
+                # Send request to file manager to handle it
+                res_body, status = self.fm.handle_request(req_header, req_body)
 
                 # Log request and response status
                 logger.log('(method: {}, path: {}, res_status: {})'.format(
@@ -106,5 +107,5 @@ class Server(object):
         log_queue.put(None)
         lt.join()
 
-        print('Server finished')
+        print('File System server finished')
 
