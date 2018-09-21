@@ -1,6 +1,6 @@
 # TP-HTTP-server
 
-HTTP server concurrente con File System distribuido (Sistemas Distribuidos I)
+HTTP server concurrente (Sistemas Distribuidos I)
 
 ### Ejecutar
 

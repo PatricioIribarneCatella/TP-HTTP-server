@@ -20,7 +20,7 @@ if __name__ == '__main__':
                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument(
             '--ip',
-            default='localhost',
+            default='0.0.0.0',
             help='HTTP server IP'
     )
     parser.add_argument(
