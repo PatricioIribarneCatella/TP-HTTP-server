@@ -14,7 +14,8 @@ class Server(object):
         
         # Allow to reuse the same address
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        
+        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
         # Bind
         self.server_socket.bind((ip, port))
         
