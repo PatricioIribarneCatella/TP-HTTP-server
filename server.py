@@ -1,6 +1,8 @@
 import socket
 import signal
+import logger
 from utils import RequestParser
+from threading import Thread
 from multiprocessing import Process, Queue
 
 class Server(object):
@@ -17,7 +19,7 @@ class Server(object):
         self.server_socket.bind((ip, port))
         
         # Listen
-        self.server_socket.listen(10)
+        self.server_socket.listen(100)
 
         # Make server's socket inheritable
         self.server_socket.set_inheritable(True)
@@ -28,23 +30,40 @@ class Server(object):
         self.num_workers = workers
         self.parser = RequestParser()
 
-    def _init_worker(self, w):
+    def _init_worker(self, w, log_queue):
 
         quit = False
 
-        print('Worker: {} init'.format(w))
+        #print('Worker: {} init'.format(w))
+
+        logger.set_queue(log_queue)
+
+        logger.log('Worker: {} init'.format(w),
+                    logger.levels["debug"],
+                    'http-server')
 
         while not quit:
 
             try:
                 # Accept client connection
                 client_connection, client_address = self.server_socket.accept()
-                print('Received connection: {}, in worker: {}'.format(client_address, w))
+                #print('Received connection: {}, in worker: {}'.format(client_address, w))
+
+                logger.log('Received connection: {}, in worker: {}'.format(client_address, w),
+                            logger.levels["debug"],
+                            'http-server')
 
                 req_header, req_body = self.parser.parse_request(client_connection)
 
                 # Send request to 'app' to handle it
                 res_body, status = self.app(req_header, req_body)
+
+                # Log request and response status
+                logger.log('(method: {}, path: {}, res_status: {})'.format(
+                                req_header["method"],
+                                req_header["path"],
+                                status), logger.levels["info"], 
+                                'http-server')
                 
                 res = self.parser.build_response(res_body, status)
                 
@@ -61,13 +80,14 @@ class Server(object):
         
         w = 0
         workers = []
+        log_queue = Queue()
        
         # Create pool of workers
         for i in range(self.num_workers):
-            p = Process(target=self._init_worker, args=(i,))
+            p = Process(target=self._init_worker, args=(i, log_queue))
             workers.append(p)
             p.start()
-        
+       
         # Set the ignore flag in main process
         # for SIGINT signal
         signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -75,10 +95,18 @@ class Server(object):
         # Close server connection
         self.server_socket.close()
 
+        logger.init()
+        
+        lt = Thread(target=logger.log_worker, args=(log_queue,))
+        lt.start()
+
         # Wait to workers to finish
         for j in range(self.num_workers):
             workers[i].join()
 
-        print('Server finished')
+        # Tell the logger to finish
+        log_queue.put(None)
+        lt.join()
 
+        print('Server finished')
 
