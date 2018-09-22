@@ -9,6 +9,8 @@ services:
                 networks:
                         - server_net
                         - fs_net
+                environment:
+                        - FS_SCALE=${FS_SCALE}
                 command: ["python3", "main.py", "--app=http_app:app", "--workers=3"]
 
         fs:

@@ -9,7 +9,7 @@ import utils as parser
 # Returns: tupple
 #   (res_body, status)
 #
-def app(req_header, req_body):
+def app(req_header, req_body, num_fs):
  
     req = parser.build_request(req_header, req_body)
 

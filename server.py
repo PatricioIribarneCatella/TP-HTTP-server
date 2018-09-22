@@ -7,7 +7,7 @@ from multiprocessing import Process, Queue
 
 class Server(object):
 
-    def __init__(self, ip, port, workers, app):
+    def __init__(self, ip, port, workers, app, fs_scale):
        
         # Create the socket
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -29,6 +29,8 @@ class Server(object):
         self.port = port
         self.app = app
         self.num_workers = workers
+        self.num_fs = fs_scale
+        print("FSs: {}".format(self.num_fs))
 
     def _init_worker(self, w, log_queue):
 
@@ -53,7 +55,7 @@ class Server(object):
                 req_header, req_body = parser.parse_request(client_connection)
 
                 # Send request to 'app' to handle it
-                res_body, status = self.app(req_header, req_body)
+                res_body, status = self.app(req_header, req_body, self.num_fs)
 
                 # Log request and response status
                 logger.log('(method: {}, path: {}, res_status: {})'.format(
