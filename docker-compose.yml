@@ -3,8 +3,10 @@ services:
         web:
                 container_name: http-server
                 build:
+                        dockerfile: Dockerfile-http
                         context: ./
                 ports:
                         - "8888:8888"
                 command: ["python3", "main.py", "--app=http_app:app", "--workers=3"]
+
 
