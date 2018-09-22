@@ -1,15 +1,11 @@
 import argparse
 from fs-server import FSServer
 
-def main(ip, port, workers, app_path):
-    
-    module, app = app_path.split(':')
-    module = __import__(module)
-    app = getattr(module, app)
+def main(ip, port, workers, cache_size):
 
-    print('Server at IP:{ip}, PORT:{port}'.format(ip=ip, port=port))
+    print('FS Server at IP:{ip}, PORT:{port}'.format(ip=ip, port=port))
     
-    server = FSServer(ip, port, workers, app)
+    server = FSServer(ip, port, workers, cache_size)
     server.run()
 
 
@@ -26,7 +22,7 @@ if __name__ == '__main__':
     parser.add_argument(
             '--port',
             type=int,
-            default=8888,
+            default=9999,
             help='FS server PORT'
     )
     parser.add_argument(
