@@ -14,7 +14,7 @@ def app(req_header, req_body):
     req = parser.build_request(req_header, req_body)
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect(('tp-http-server_fs_1', 9999))
+    s.connect(('http_fs_1', 9999))
     s.sendall(req.encode())
 
     h, body = parser.parse_response(s)
