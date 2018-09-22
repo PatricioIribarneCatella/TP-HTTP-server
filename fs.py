@@ -1,5 +1,5 @@
 import argparse
-from fs-server import FSServer
+from fs_server import FSServer
 
 def main(ip, port, workers, cache_size):
 

@@ -1,7 +1,7 @@
 import socket
 import signal
 import logger
-from utils import RequestParser
+import utils as parser
 from threading import Thread
 from filemanager import FileManager
 from multiprocessing import Process, Queue
@@ -29,7 +29,6 @@ class FSServer(object):
         self.ip = ip
         self.port = port
         self.num_workers = workers
-        self.parser = RequestParser()
         self.fm = FileManager(cache_size)
 
     def _init_worker(self, w, log_queue):
@@ -52,7 +51,7 @@ class FSServer(object):
                             logger.levels["debug"],
                             'fs-server')
 
-                req_header, req_body = self.parser.parse_request(client_connection)
+                req_header, req_body = parser.parse_request(client_connection)
 
                 # Send request to file manager to handle it
                 res_body, status = self.fm.handle_request(req_header, req_body)
@@ -64,7 +63,7 @@ class FSServer(object):
                                 status), logger.levels["info"], 
                                 'fs-server')
                 
-                res = self.parser.build_response(res_body, status)
+                res = parser.build_response(res_body, status)
                 
                 print(res)
                 client_connection.sendall(res.encode())
