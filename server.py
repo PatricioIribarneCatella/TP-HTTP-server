@@ -1,7 +1,7 @@
 import socket
 import signal
 import logger
-from utils import RequestParser
+import utils as parser
 from threading import Thread
 from multiprocessing import Process, Queue
 
@@ -29,7 +29,6 @@ class Server(object):
         self.port = port
         self.app = app
         self.num_workers = workers
-        self.parser = RequestParser()
 
     def _init_worker(self, w, log_queue):
 
@@ -51,7 +50,7 @@ class Server(object):
                             logger.levels["debug"],
                             'http-server')
 
-                req_header, req_body = self.parser.parse_request(client_connection)
+                req_header, req_body = parser.parse_request(client_connection)
 
                 # Send request to 'app' to handle it
                 res_body, status = self.app(req_header, req_body)
@@ -63,7 +62,7 @@ class Server(object):
                                 status), logger.levels["info"], 
                                 'http-server')
                 
-                res = self.parser.build_response(res_body, status)
+                res = parser.build_response(res_body, status)
                 
                 print(res)
                 client_connection.sendall(res.encode())

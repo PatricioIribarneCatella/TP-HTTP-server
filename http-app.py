@@ -1,3 +1,6 @@
+import socket
+import utils as parser
+
 # Receives header and body
 # form request
 #   req_header: dictionary
@@ -5,19 +8,18 @@
 #
 # Returns: tupple
 #   (res_body, status)
-
+#
 def app(req_header, req_body):
-    status = '200 OK'
+ 
+    req = parser.build_request(req_header, req_body)
 
-    body = {
-            'msg': 'Hello world',
-            'count': 11
-    }
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect(('localhost', 9999))
+    s.sendall(req)
 
-    if (req_header['method'] == 'GET'):
-        res_body = body
-    else:
-        res_body = req_body
+    h, body = parser.parse_response(s)
 
-    return res_body, status
+    s.close()
+
+    return body, h['status']
 
