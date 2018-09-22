@@ -23,8 +23,9 @@ class FileManager(object):
     def _post_handler(self, header, body):
         if header['path'] not in self.data:
             self.data[header['path']] = body
-            return {}, '200 OK'
-        return {'msg': 'data already exists'}, '405 ERROR'
+            uid = header['path'].split("/")[3]
+            return {'id': uid}, '200 OK'
+        return {'msg': 'data already exists'}, '406 ERROR'
 
     def _put_handler(self, header, body):
         if header['path'] not in self.data:

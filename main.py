@@ -10,7 +10,7 @@ def main(ip, port, workers, app_path):
 
     print('Server at IP:{ip}, PORT:{port}'.format(ip=ip, port=port))
     
-    server = Server(ip, port, workers, app, os.getenv('FS_SCALE', 1))
+    server = Server(ip, port, workers, app, int(os.getenv('FS_SCALE', 1)))
     server.run()
 
 
