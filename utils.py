@@ -62,7 +62,7 @@ def parse_response(connection):
 
     while (line != ""):
         
-        line = _get_line(client_connection, '\n')
+        line = _get_line(connection, '\n')
 
         field = line.split(": ")
 
@@ -73,7 +73,7 @@ def parse_response(connection):
             header['content-length'] = int(field[1])
 
     # Body begining
-    data = client_connection.recv(header['content-length'] + 1)
+    data = connection.recv(header['content-length'] + 1)
     data = data.decode().rstrip('\r\n')
     body = body.join(data)
     body = json.loads(body)
@@ -107,7 +107,7 @@ def build_response(res_body, status):
 # From header and body builds a HTTP request
 def build_request(header, req_body):
 
-    body = json.dumps(res_body,
+    body = json.dumps(req_body,
                 sort_keys=True,
                 indent=4,
                 separators=(',', ': '))
@@ -125,8 +125,8 @@ def build_request(header, req_body):
     for h in json_headers:
         request += '{0}: {1}\n'.format(h[0], h[1])
 
-    response += '\n'
-    response += body
+    request += '\n'
+    request += body
 
     return request
 

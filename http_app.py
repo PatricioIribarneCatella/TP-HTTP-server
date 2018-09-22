@@ -15,7 +15,7 @@ def app(req_header, req_body):
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect(('localhost', 9999))
-    s.sendall(req)
+    s.sendall(req.encode())
 
     h, body = parser.parse_response(s)
 

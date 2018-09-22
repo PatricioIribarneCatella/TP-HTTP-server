@@ -32,12 +32,12 @@ if __name__ == '__main__':
             help='Number of workers running the FS App'
     )
     parser.add_argument(
-            '--cache-size',
+            '--cache',
             type=int,
             default=10,
             help='Number of entries in the cache'
     )
     args = parser.parse_args()
     
-    main(args.ip, args.port, args.workers, args.cache-size)
+    main(args.ip, args.port, args.workers, args.cache)
 
