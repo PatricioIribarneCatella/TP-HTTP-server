@@ -1,4 +1,4 @@
-version: '3'
+version: '3.5'
 services:
         web:
                 container_name: http-server
@@ -7,6 +7,24 @@ services:
                         context: ./
                 ports:
                         - "8888:8888"
+                networks:
+                        - http_server
+                        - fs_server
                 command: ["python3", "main.py", "--app=http_app:app", "--workers=3"]
 
+        fs:
+                build:
+                        dockerfile: Dockerfile-fs
+                        context: ./
+                networks:
+                        fs_server:
+                                aliases:
+                                         - "fs_server"
+                command: ["python3", "fs.py"]
+
+networks:
+        http_server:
+                driver: bridge
+        fs_server:
+                driver: bridge
 
