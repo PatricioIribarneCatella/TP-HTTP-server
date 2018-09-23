@@ -1,10 +1,9 @@
+import os
 import json
 
 class FileManager(object):
 
     def __init__(self, cache_size):
-        
-        self.cache_size = cache_size
         
         self.method_handler = {
             'get': self._get_handler,
@@ -13,7 +12,7 @@ class FileManager(object):
             'delete': self._del_handler
         }
 
-        self.data = {}
+        #self.cache = Cache(cache_size)
 
     def _get_handler(self, header, body):
         
@@ -30,38 +29,61 @@ class FileManager(object):
         return data, '200 OK'
 
     def _post_handler(self, header, body):
-       
+
         uid = header['path'].split("/")[3]
         
         with open("/data/" + uid, "w") as f:
             json.dump(body, f)
         f.close()
-
-        if header['path'] not in self.data:
-            self.data[header['path']] = body
-            return {'id': uid}, '200 OK'
         
-        return {'msg': 'data already exists'}, '406 ERROR'
+        return {'id': uid}, '200 OK'
 
     def _put_handler(self, header, body):
         
-        if header['path'] not in self.data:
+        uid = header['path'].split("/")[3]
+
+        try:
+            with open("/data/" + uid, "r+") as f:
+                json.dump(body, f)
+        except FileNotFoundError:
             return {'msg': 'not found'}, '404 ERROR'
-        self.data[header['path']] = body
         
         return {}, '200 OK'
 
     def _del_handler(self, header, body):
-        
-        if header['path'] not in self.data:
+       
+        uid = header['path'].split("/")[3]
+
+        try:
+            os.remove("/data/" + uid)
+        except FileNotFoundError:
             return {'msg': 'not found'}, '404 ERROR'
-        del self.data[header['path']]
-        
+
         return {}, '200 OK'
 
-    def handle_request(self, header, body):
+    def handle_request(self, req_queue, res_queues):
 
-        h = self.method_handler.get(header['method'].lower())
-        
-        return h(header, body)
+        quit = False
+
+        while not quit:
+            
+            # (req_header, req_body, pid, address)
+            req = req_queue.get()
+
+            print("hola3")
+
+            if (req == None):
+                quit = True
+                continue
+
+            header = req[0]
+            body = req[1]
+            pid = req[2]
+            address = req[3]
+
+            h = self.method_handler.get(header['method'].lower())
+
+            res_body, status = h(header, body)
+
+            res_queues[pid].put((header, res_body, status, address))
 

@@ -74,8 +74,6 @@ def app(req_header, req_body, num_fs):
         
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
        
-        print("fs id: {}".format(fs_id))
-
         s.connect((fs_id, 9999))
         s.sendall(req.encode())
 

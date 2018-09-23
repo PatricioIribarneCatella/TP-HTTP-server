@@ -11,7 +11,7 @@ services:
                         - fs_net
                 environment:
                         - FS_SCALE=${FS_SCALE}
-                command: ["python3", "main.py", "--app=http_app:app", "--workers=3"]
+                command: ["python3", "main.py", "--app=http_app:app", "--workers=${WORKERS}"]
 
         fs:
                 build:
@@ -19,7 +19,7 @@ services:
                         context: ./
                 networks:
                         - fs_net
-                command: ["python3", "fs.py"]
+                command: ["python3", "fs.py", "--workers=${FS_WORKERS}"]
 
 networks:
         server_net:

@@ -2,6 +2,7 @@ import socket
 import signal
 import logger
 import parser
+import queue
 from threading import Thread
 from filemanager import FileManager
 from multiprocessing import Process, Queue
@@ -29,13 +30,56 @@ class FSServer(object):
         self.ip = ip
         self.port = port
         self.num_workers = workers
-        self.fm = FileManager(cache_size)
+        self.cache_size = cache_size
 
-    def _init_worker(self, w, log_queue):
+    def _init_file_manager(self, req_queue, res_queues):
 
+        fm = FileManager(self.cache_size)
+
+        fm.handle_request(req_queue, res_queues)
+
+    def _wait_response(self, res_queue, conn_queue):
+      
         quit = False
 
+        while not quit:
+
+            # Get connection from worker process
+            c = conn_queue.get()
+
+            if (c == None):
+                quit = True
+                continue
+
+            print("hola")
+
+            # Get response from FileManager
+            header, res_body, status, address = res_queue.get()
+
+            #logger.log('Hola', logger.levels["debug"], 'fs-server')
+            print("hola1")
+
+            # Log request and response status
+            logger.log('(method: {}, path: {}, res_status: {})'.format(
+                            header["method"],
+                            header["path"],
+                            status), logger.levels["info"],
+                            'fs-server')
+            
+            res = parser.build_response(res_body, status)
+            
+            c.sendall(res.encode())
+            c.close()
+
+    def _init_worker(self, w, log_queue, req_queue, res_queue):
+
+        quit = False
+        conn_queue = Queue()
+        
         logger.set_queue(log_queue)
+
+        res_t = Thread(target=self._wait_response, args=(res_queue, conn_queue))
+        res_t.start()
 
         logger.log('Worker: {} init'.format(w),
                     logger.levels["debug"],
@@ -51,26 +95,23 @@ class FSServer(object):
                             logger.levels["debug"],
                             'fs-server')
 
+                # Parse request
                 req_header, req_body = parser.parse_request(client_connection)
-
-                # Send request to file manager to handle it
-                res_body, status = self.fm.handle_request(req_header, req_body)
-
-                # Log request and response status
-                logger.log('(method: {}, path: {}, res_status: {})'.format(
-                                req_header["method"],
-                                req_header["path"],
-                                status), logger.levels["info"], 
-                                'fs-server')
                 
-                res = parser.build_response(res_body, status)
-                
-                print(res)
-                client_connection.sendall(res.encode())
-                client_connection.close()
+                # Store the connection and header to use it
+                # when the response is available
+                #connections[client_address] = (client_connection, req_header)
+
+                # Send request to file manager controller
+                req_queue.put((req_header, req_body, w, client_address))
+                conn_queue.put(client_connection)
 
             except KeyboardInterrupt:
                 quit = True
+
+        # Wait for response thread to finish
+        conn_queue.put(None)
+        res_t.join()
 
         self.server_socket.close()
 
@@ -78,11 +119,15 @@ class FSServer(object):
         
         w = 0
         workers = []
+        
         log_queue = Queue()
+        req_queue = Queue()
+        res_queues = [Queue() for i in range(self.num_workers)]
        
         # Create pool of workers
         for i in range(self.num_workers):
-            p = Process(target=self._init_worker, args=(i, log_queue))
+            p = Process(target=self._init_worker,
+                    args=(i, log_queue, req_queue, res_queues[i]))
             workers.append(p)
             p.start()
        
@@ -92,6 +137,10 @@ class FSServer(object):
 
         # Close server connection
         self.server_socket.close()
+        
+        # Create Cache and FS controller
+        c = Process(target=self._init_file_manager, args=(req_queue, res_queues))
+        c.start()
 
         logger.init('fs-server')
         
@@ -101,6 +150,10 @@ class FSServer(object):
         # Wait to workers to finish
         for j in range(self.num_workers):
             workers[i].join()
+
+        # Tell the Cache and Fs controller to finish
+        req_queue.put(None)
+        c.join()
 
         # Tell the logger to finish
         log_queue.put(None)
