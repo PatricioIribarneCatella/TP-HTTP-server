@@ -1,7 +1,7 @@
 import socket
 import signal
 import logger
-import utils as parser
+import parser
 from threading import Thread
 from filemanager import FileManager
 from multiprocessing import Process, Queue

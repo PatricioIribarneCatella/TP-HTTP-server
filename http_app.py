@@ -1,6 +1,6 @@
 import uuid
 import socket
-import utils as parser
+import parser
 
 # Receives header and body
 # form request
