@@ -1,15 +1,14 @@
 import argparse
 import requests
+from multiprocessing import Process
 
 URL = "http://localhost:8888/owner/entity"
 
-def main(n):
-
-    print("url: {}\n".format(URL))
-
+def _work(n, p):
+    
     for i in range(n):
         
-        print("Request n: {}\n".format(i))
+        print("Request n: {}, tester: {}\n".format(i, p))
         
         # POST request
         print("POST request")
@@ -37,6 +36,19 @@ def main(n):
         print("Status code: {}".format(gr.status_code))
         print("Body: {}\n\n".format(gr.json()))
 
+def main(n, ps):
+
+    print("url: {}\n".format(URL))
+
+    testers = [Process(target=_work, args=(n, i)) for i in range(ps)]
+
+    for i in range(ps):
+        testers[i].start()
+
+    for j in range(ps):
+        testers[j].join()
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
@@ -49,7 +61,13 @@ if __name__ == '__main__':
             default=1,
             help="Number of requests to do"
     )
+    parser.add_argument(
+            '--testers',
+            type=int,
+            default=1,
+            help="Numbre of workers sending requests"
+    )
     args = parser.parse_args()
 
-    main(args.requests)
+    main(args.requests, args.testers)
 
