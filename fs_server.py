@@ -51,13 +51,8 @@ class FSServer(object):
                 quit = True
                 continue
 
-            print("hola")
-
             # Get response from FileManager
             header, res_body, status, address = res_queue.get()
-
-            #logger.log('Hola', logger.levels["debug"], 'fs-server')
-            print("hola1")
 
             # Log request and response status
             logger.log('(method: {}, path: {}, res_status: {})'.format(
@@ -98,10 +93,6 @@ class FSServer(object):
                 # Parse request
                 req_header, req_body = parser.parse_request(client_connection)
                 
-                # Store the connection and header to use it
-                # when the response is available
-                #connections[client_address] = (client_connection, req_header)
-
                 # Send request to file manager controller
                 req_queue.put((req_header, req_body, w, client_address))
                 conn_queue.put(client_connection)

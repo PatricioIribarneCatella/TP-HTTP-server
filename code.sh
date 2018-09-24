@@ -1,0 +1,1 @@
+find -regextype posix-egrep -type f -regex '.*\.(html|prop|java|py|go|cpp|c|h)' | sort -r | tac | xargs -- a2ps -q -2 -Av --toc --line-numbers=1 --tabsize=2 --header='[75.74] Sistemas Distribuidos - Padron: 96619 (curso: 2.2018)  Ejercicio: Distributed HTTP Server (entrega: 24/09/2018)' --left-footer='%D{%c}' --footer='$f' -g -o - | ps2pdf - codigo.pdf
