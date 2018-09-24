@@ -19,7 +19,7 @@ services:
                         context: ./
                 networks:
                         - fs_net
-                command: ["python3", "fs.py", "--workers=${FS_WORKERS}"]
+                command: ["python3", "fs.py", "--workers=${FS_WORKERS}", "--cache=${CACHE_SIZE}"]
 
 networks:
         server_net:

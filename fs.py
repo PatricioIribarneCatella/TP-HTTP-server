@@ -34,7 +34,7 @@ if __name__ == '__main__':
     parser.add_argument(
             '--cache',
             type=int,
-            default=10,
+            default=100,
             help='Number of entries in the cache'
     )
     args = parser.parse_args()
