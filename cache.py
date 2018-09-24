@@ -3,7 +3,7 @@ import json
 # LRU Cache
 #
 # Items:
-#   uid -> (body, count_old)
+#   uid -> (body, count_old, is_in_disc)
 #
 class Cache(object):
 
@@ -54,18 +54,18 @@ class Cache(object):
 
         item = self.data[uid]
 
-        self.data[uid] = (item[0], item[1] + 1)
+        self.data[uid] = (item[0], item[1] + 1, item[2])
         
         return self.data[uid][0]
 
-    def put(self, uid, data):
+    def put(self, uid, data, is_in_disc):
         
         if (self.count == self.size):
             self._persist_data()
 
         n = self._get_max_entry()
 
-        self.data[uid] = (data, n + 1)
+        self.data[uid] = (data, n + 1, is_in_disc)
 
         self.count = self.count + 1
 
@@ -74,14 +74,22 @@ class Cache(object):
         if uid not in self.data:
             return False
 
-        self.data[uid][0] = data
+        item = self.data[uid]
+        self.data[uid] = (data, item[1] + 1, item[2])
         
         return True
 
     def delete(self, uid):
 
+        in_disc = 1
+
         if uid in self.data:
+            in_disc = self.data[uid][2]
             del self.data[uid]
+        
         if (self.count > 0):
             self.count = self.count - 1
+        
+        return in_disc
+
 

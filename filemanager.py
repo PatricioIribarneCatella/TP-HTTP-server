@@ -30,7 +30,7 @@ class FileManager(object):
             try:
                 with open(self.store_dir + uid, "r") as f:
                     data = json.load(f)
-                self.cache.put(uid, data)
+                self.cache.put(uid, data, 1)
             except FileNotFoundError:
                 return {'msg': 'not found'}, '404 ERROR'
 
@@ -40,7 +40,7 @@ class FileManager(object):
 
         uid = header['path'].split("/")[3]
 
-        self.cache.put(uid, body)
+        self.cache.put(uid, body, 0)
         
         return {'id': uid}, '200 OK'
 
@@ -68,11 +68,13 @@ class FileManager(object):
 
         uid = header['path'].split("/")[3]
 
-        self.cache.delete(uid)
-        try:
-            os.remove(self.store_dir + uid)
-        except FileNotFoundError:
-            return {'msg': 'not found'}, '404 ERROR'
+        is_in_disc = self.cache.delete(uid)
+        
+        if (is_in_disc):
+            try:
+                os.remove(self.store_dir + uid)
+            except FileNotFoundError:
+                return {'msg': 'not found'}, '404 ERROR'
 
         return {}, '200 OK'
 
@@ -84,8 +86,6 @@ class FileManager(object):
             
             # (req_header, req_body, pid, address)
             req = req_queue.get()
-
-            print("hola3")
 
             if (req == None):
                 quit = True
