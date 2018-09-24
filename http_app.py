@@ -73,12 +73,23 @@ def app(req_header, req_body, num_fs):
         req = parser.build_request(req_header, req_body)
         
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-       
-        s.connect((fs_id, 9999))
-        s.sendall(req.encode())
+      
+        try:
+            s.connect((fs_id, 9999))
+        except socket.error:
+            return {'msg': 'internal error'}, '500 ERROR'
 
-        h, body = parser.parse_response(s)
-        s.close()
+        try:
+            s.sendall(req.encode())
+        except socket.error:
+            return {'msg': 'internal error'}, '500 ERROR'
+
+        try:
+            h, body = parser.parse_response(s)
+            s.close()
+        except socket.error:
+            return {'msg': 'internal error'}, '500 ERROR'
+
         status = h['status']
 
     return body, status
