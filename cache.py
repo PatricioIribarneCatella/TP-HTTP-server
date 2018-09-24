@@ -13,7 +13,11 @@ class Cache(object):
         self.size = size
         self.count = 0
 
-    def _persist_data(self):
+    def _persist_data(self, data, uid):
+        with open(self.store_dir + uid, "w") as f:
+           json.dump(data, f)
+
+    def _back_up_data(self):
 
        it = self.data.items()
 
@@ -23,8 +27,7 @@ class Cache(object):
 
        data_lru = self.data[lru[0]]
 
-       with open(self.store_dir + lru[0], "w") as f:
-           json.dump(data_lru[0], f)
+       self._persist_data(data_lru[0], lru[0])
 
        del self.data[lru[0]]
 
@@ -59,9 +62,14 @@ class Cache(object):
         return self.data[uid][0]
 
     def put(self, uid, data, is_in_disc):
-        
+       
+        if (self.size == 0):
+            self._persist_data(data, uid)
+            self.count = self.count + 1
+            return
+
         if (self.count == self.size):
-            self._persist_data()
+            self._back_up_data()
 
         n = self._get_max_entry()
 
