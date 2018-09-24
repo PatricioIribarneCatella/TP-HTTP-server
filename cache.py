@@ -24,7 +24,7 @@ class Cache(object):
        data_lru = self.data[lru[0]]
 
        with open(self.store_dir + lru[0], "w") as f:
-           json.dump(data_lru, f)
+           json.dump(data_lru[0], f)
 
        del self.data[lru[0]]
 

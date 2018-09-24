@@ -26,7 +26,7 @@ if __name__ == '__main__':
             help='FS server PORT'
     )
     parser.add_argument(
-            '--workers',
+            '--fsworkers',
             type=int,
             default=1,
             help='Number of workers running the FS App'
@@ -39,5 +39,5 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     
-    main(args.ip, args.port, args.workers, args.cache)
+    main(args.ip, args.port, args.fsworkers, args.cache)
 
