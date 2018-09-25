@@ -15,7 +15,7 @@ $ python3 fs.py [--fsworkers=NUM(1) | --ip=IP(localhost) | --port=PORT(8888) | -
 
 #### Docker
 
-- Dependencias: _Docker_ y _Docker Compose_
+- Dependencias: [_Docker_](https://docs.docker.com/install/) y [_Docker Compose_](https://docs.docker.com/compose/install/)
 
 ```bash
 $ ./run.sh FSs --workers=NUM --fsworkers=NUM --cache=SIZE --urlfs=URL
@@ -26,7 +26,7 @@ $ ./run.sh FSs --workers=NUM --fsworkers=NUM --cache=SIZE --urlfs=URL
 
 #### Tests
 
-- Dependencias: _requests_
+- Dependencias: [_requests_](http://www.python-requests.org/en/master/)
 
 ```bash
 $ python3 load_data_test.py [--requests=NUM | --testers=NUM]
