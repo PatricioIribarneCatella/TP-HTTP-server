@@ -2,7 +2,7 @@ version: '3.5'
 services:
         server:
                 build:
-                        dockerfile: Dockerfile-http
+                        dockerfile: http.dockerfile
                         context: ./
                 ports:
                         - "8888:8888"
@@ -15,7 +15,7 @@ services:
 
         fs:
                 build:
-                        dockerfile: Dockerfile-fs
+                        dockerfile: fs.dockerfile
                         context: ./
                 networks:
                         - fs_net
