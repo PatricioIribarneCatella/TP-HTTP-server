@@ -2,7 +2,7 @@ import os
 import argparse
 from server import Server
 
-def main(ip, port, workers, app_path):
+def main(ip, port, workers, app_path, url_fs):
     
     module, app = app_path.split(':')
     module = __import__(module)
@@ -10,7 +10,10 @@ def main(ip, port, workers, app_path):
 
     print('Server at IP:{ip}, PORT:{port}'.format(ip=ip, port=port))
     
-    server = Server(ip, port, workers, app, int(os.getenv('FS_SCALE', 1)))
+    server = Server(ip, port,
+                workers, app,
+                int(os.getenv('FS_SCALE', 1)),
+                url_fs)
     server.run()
 
 
@@ -37,10 +40,15 @@ if __name__ == '__main__':
             help='Number of workers running the App'
     )
     parser.add_argument(
+            '--urlfs',
+            default='localhost',
+            help='File System network name'
+    )
+    parser.add_argument(
             '--app',
             help='The app that is going to be run in each worker (module:function)'
     )
     args = parser.parse_args()
     
-    main(args.ip, args.port, args.workers, args.app)
+    main(args.ip, args.port, args.workers, args.app, args.urlfs)
 

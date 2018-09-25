@@ -11,7 +11,7 @@ services:
                         - fs_net
                 environment:
                         - FS_SCALE=${FS_SCALE}
-                command: ["python3", "main.py", "--app=http_app:app", "${WORKERS}"]
+                command: ["python3", "main.py", "--app=http_app:app", "${WORKERS}", "${FS_URL}"]
 
         fs:
                 build:

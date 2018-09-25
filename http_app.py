@@ -11,10 +11,7 @@ import parser
 #   (res_body, status)
 #
 
-FS_URL_BASE = "http_fs_"
-
-
-def _get_handler(path, n):
+def _get_handler(path, n, url_fs):
 
     s = path.split("/")
 
@@ -24,24 +21,30 @@ def _get_handler(path, n):
     uid = s[3]
 
     h = hash(uid[0:8]) % n + 1
+    
+    if (url_fs == 'localhost'):
+        return url_fs, path, ""
 
-    return FS_URL_BASE + str(h), path, ""
+    return url_fs + str(h), path, ""
 
-def _post_handler(path, n):
+def _post_handler(path, n, url_fs):
 
     uid = str(uuid.uuid4())
 
     h = hash(uid[0:8]) % n + 1
 
-    return FS_URL_BASE + str(h), path + "/" + uid, ""
+    if (url_fs == 'localhost'):
+        return url_fs, path + "/" + uid, ""
 
-def _put_handler(path, n):
+    return url_fs + str(h), path + "/" + uid, ""
 
-    return _get_handler(path, n)
+def _put_handler(path, n, url_fs):
 
-def _del_handler(path, n):
+    return _get_handler(path, n, url_fs)
+
+def _del_handler(path, n, url_fs):
     
-    return _get_handler(path, n)
+    return _get_handler(path, n, url_fs)
 
 # Verb request handlers
 handlers = {
@@ -51,18 +54,20 @@ handlers = {
     'delete': _del_handler
 }
 
-def _get_fs(method, path, num_fs):
+def _get_fs(method, path, num_fs, url_fs):
 
     h = handlers.get(method.lower())
 
-    return h(path, num_fs)
+    return h(path, num_fs, url_fs)
 
-def app(req_header, req_body, num_fs):
+def app(req_header, req_body, num_fs, url_fs):
 
     body = ""
     status = ""
 
-    fs_id, path, error = _get_fs(req_header['method'], req_header['path'], num_fs)
+    fs_id, path, error = _get_fs(req_header['method'],
+                                 req_header['path'],
+                                 num_fs, url_fs)
 
     if (error != ""):
         body = {'msg': error}
