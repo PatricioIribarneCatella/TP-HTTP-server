@@ -39,8 +39,7 @@ class Server(object):
         logger.set_queue(log_queue)
 
         logger.log('Worker: {} init'.format(w),
-                    logger.levels["debug"],
-                    'http-server')
+                    "debug", 'http-server')
 
         while not quit:
 
@@ -49,8 +48,7 @@ class Server(object):
                 client_connection, client_address = self.server_socket.accept()
 
                 logger.log('Received connection: {}, in worker: {}'.format(client_address, w),
-                            logger.levels["debug"],
-                            'http-server')
+                            "debug", 'http-server')
 
                 req_header, req_body = parser.parse_request(client_connection)
 
@@ -61,12 +59,10 @@ class Server(object):
                 logger.log('(method: {}, path: {}, res_status: {})'.format(
                                 req_header["method"],
                                 req_header["path"],
-                                status), logger.levels["info"], 
-                                'http-server')
+                                status), "info", 'http-server')
                 
                 res = parser.build_response(res_body, status)
                 
-                print(res)
                 client_connection.sendall(res.encode())
                 client_connection.close()
 

@@ -58,8 +58,7 @@ class FSServer(object):
             logger.log('(method: {}, path: {}, res_status: {})'.format(
                             header["method"],
                             header["path"],
-                            status), logger.levels["info"],
-                            'fs-server')
+                            status), "info", 'fs-server')
             
             res = parser.build_response(res_body, status)
             
@@ -77,8 +76,7 @@ class FSServer(object):
         res_t.start()
 
         logger.log('Worker: {} init'.format(w),
-                    logger.levels["debug"],
-                    'fs-server')
+                    "debug", 'fs-server')
 
         while not quit:
 
@@ -87,8 +85,7 @@ class FSServer(object):
                 client_connection, client_address = self.server_socket.accept()
 
                 logger.log('Received connection: {}, in worker: {}'.format(client_address, w),
-                            logger.levels["debug"],
-                            'fs-server')
+                            "debug", 'fs-server')
 
                 # Parse request
                 req_header, req_body = parser.parse_request(client_connection)

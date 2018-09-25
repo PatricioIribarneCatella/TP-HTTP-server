@@ -57,7 +57,7 @@ def set_queue(q):
 def log(message, level, logger_name):
     
     logger = logging.getLogger(logger_name)
-    logger.log(level, message)
+    logger.log(levels[level], message)
 
 def log_worker(q):
     quit = False

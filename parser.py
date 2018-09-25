@@ -10,8 +10,6 @@ def _get_line(connection, delimeter):
         line = line + c.decode()
         c = connection.recv(1)
 
-    print(line)
-
     return line.rstrip('\r')
 
 # Parses HTTP body
