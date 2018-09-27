@@ -8,12 +8,12 @@ HTTP server concurrente (Sistemas Distribuidos I)
 $ python3 main.py --app=[module:function] [--workers=NUM(1) |
 				--ip=IP(localhost) |
 				--port=PORT(8888) |
-				--urlfs=URL ('localhost')]
+				--urlfs=URL('localhost')]
 ```
 En otra terminal ejecutar:
 
 ```bash
-$ python3 fs.py [--fsworkers=NUM(1) | --ip=IP(localhost) | --port=PORT(8888) | --cache=SIZE(100 entries)]
+$ python3 fs.py [--fsworkers=NUM(1) | --ip=IP('localhost') | --port=PORT(9999) | --cache=SIZE(100 entries)]
 ```
 
 #### Docker
@@ -21,7 +21,7 @@ $ python3 fs.py [--fsworkers=NUM(1) | --ip=IP(localhost) | --port=PORT(8888) | -
 - Dependencias: [_Docker_](https://docs.docker.com/install/) y [_Docker Compose_](https://docs.docker.com/compose/install/)
 
 ```bash
-$ ./run.sh --fs=FSs --workers=NUM --fsworkers=NUM --cache=SIZE [--urlfs=URL ('http_fs_')]
+$ ./run.sh --fs=FSs --workers=NUM --fsworkers=NUM --cache=SIZE [--urlfs=URL('http_fs_')]
 
 	FSs: Cantidad de containers para el File System
 	URL: El nombre o url donde se encuentra el FS
