@@ -7,7 +7,7 @@ from multiprocessing import Process, Queue
 
 class Server(object):
 
-    def __init__(self, ip, port, workers, app, fs_scale, url_fs):
+    def __init__(self, ip, port, workers, fs_scale, url_fs):
        
         # Create the socket
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -27,7 +27,7 @@ class Server(object):
   
         self.ip = ip
         self.port = port
-        self.app = app
+        self.app = App()
         self.num_workers = workers
         self.num_fs = fs_scale
         self.url_fs = url_fs
