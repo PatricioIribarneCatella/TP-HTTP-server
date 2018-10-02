@@ -1,37 +1,21 @@
-import socket
 import signal
-import logger
-import parser
-from threading import Thread
+import ../libs/logger
+import ../libs/parser
+from ../libs/socket import Socket
 from multiprocessing import Process, Queue
 
 class Server(object):
 
-    def __init__(self, ip, port, workers, fs_scale, url_fs):
+    def __init__(self, ip, port, workers, num_fs, url_fs):
        
         # Create the socket
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
-        # Allow to reuse the same address
-        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        self.server_socket = Socket(ip, port, max_conn=100)
 
-        # Bind
-        self.server_socket.bind((ip, port))
-        
-        # Listen
-        self.server_socket.listen(100)
-
-        # Make server's socket inheritable
-        self.server_socket.set_inheritable(True)
-  
         self.ip = ip
         self.port = port
-        self.app = App()
         self.num_workers = workers
-        self.num_fs = fs_scale
-        self.url_fs = url_fs
-        print("FSs: {}".format(self.num_fs))
+        self.app = App(num_fs, url_fs)
+
 
     def _init_worker(self, w, log_queue):
 
