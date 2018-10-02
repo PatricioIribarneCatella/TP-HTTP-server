@@ -10,7 +10,6 @@ import parser
 # Returns: tupple
 #   (res_body, status)
 #
-
 def _get_handler(path, n, url_fs):
 
     s = path.split("/")
@@ -80,18 +79,14 @@ def app(req_header, req_body, num_fs, url_fs):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       
         try:
+            
             s.connect((fs_id, 9999))
-        except socket.error:
-            return {'msg': 'internal error'}, '500 ERROR'
-
-        try:
+            
             s.sendall(req.encode())
-        except socket.error:
-            return {'msg': 'internal error'}, '500 ERROR'
-
-        try:
+            
             h, body = parser.parse_response(s)
             s.close()
+
         except socket.error:
             return {'msg': 'internal error'}, '500 ERROR'
 
