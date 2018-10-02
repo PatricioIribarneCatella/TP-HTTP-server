@@ -5,11 +5,10 @@ from server import Server
 def main(ip, port, workers, url_fs):
     
     print('Server at IP:{ip}, PORT:{port}'.format(ip=ip, port=port))
-    
-    server = Server(ip, port,
-                workers,
-                int(os.getenv('FS_SCALE', 1)),
-                url_fs)
+
+    num_fs = int(os.getenv('FS_SCALE', 1))
+
+    server = Server(ip, port, workers, num_fs, url_fs)
     server.run()
 
 
