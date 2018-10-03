@@ -2,13 +2,13 @@ import os
 import argparse
 from server import Server
 
-def main(ip, port, workers, url_fs):
+def main(ip, port, workers, url_fs, max_conn):
     
     print('Server at IP:{ip}, PORT:{port}'.format(ip=ip, port=port))
 
     num_fs = int(os.getenv('FS_SCALE', 1))
 
-    server = Server(ip, port, workers, num_fs, url_fs)
+    server = Server(ip, port, workers, num_fs, url_fs, max_conn)
     server.run()
 
 
@@ -39,7 +39,13 @@ if __name__ == '__main__':
             default='localhost',
             help='File System network name'
     )
+    parser.add_argument(
+            '--connections',
+            type=int,
+            default=100,
+            help='The max number of waiting connections per worker'
+    )
     args = parser.parse_args()
     
-    main(args.ip, args.port, args.workers, args.urlfs)
+    main(args.ip, args.port, args.workers, args.urlfs, args.connections)
 

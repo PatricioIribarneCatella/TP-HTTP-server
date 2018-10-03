@@ -1,13 +1,16 @@
 import ../libs/logger
+import ../libs/parser
+
 from multiprocessing import Process
 
 class Worker(Process):
 
-    def __init__(self, wid, log_queue, server_socket):
+    def __init__(self, wid, app, server_socket, log_queue):
 
         self.server_socket = server_socket
         self.log_queue = log_queue
         self.wid = wid
+        self.app = app
 
         super(Worker, self).__init__()
 
@@ -29,22 +32,21 @@ class Worker(Process):
                 logger.log('Received connection: {}, in worker: {}'.format(client_address, self.wid),
                             "debug", 'http-server')
 
+                # Parse request
                 req_header, req_body = parser.parse_request(client_connection)
 
-                # Send request to 'app' to handle it
-                res_body, status = self.app(req_header,
-                                            req_body,
-                                            self.num_fs,
-                                            self.url_fs)
+                # Send request to 'APP' to handle it
+                res_body, res_status = self.app.exec_request(req_header, req_body)
 
                 # Log request and response status
                 logger.log('(method: {}, path: {}, res_status: {})'.format(
                                 req_header["method"],
                                 req_header["path"],
-                                status), "info", 'http-server')
+                                res_status), "info", 'http-server')
                 
-                res = parser.build_response(res_body, status)
+                res = parser.build_response(res_body, res_status)
                 
+                # Send response to client
                 client_connection.sendall(res.encode())
                 client_connection.close()
 
