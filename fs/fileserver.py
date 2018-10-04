@@ -1,31 +1,18 @@
-import socket
 import signal
-import logger
-import parser
-import queue
+import ../libs/logger
+
 from threading import Thread
 from filemanager import FileManager
+from ../libs/socket import Socket
+
 from multiprocessing import Process, Queue
 
-class FSServer(object):
+class FileServer(object):
 
     def __init__(self, ip, port, workers, cache_size):
        
         # Create the socket
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
-        # Allow to reuse the same address
-        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-
-        # Bind
-        self.server_socket.bind((ip, port))
-        
-        # Listen
-        self.server_socket.listen(100)
-
-        # Make server's socket inheritable
-        self.server_socket.set_inheritable(True)
+        self.server_socket = Socket(ip, port, max_conn)
   
         self.ip = ip
         self.port = port
@@ -137,7 +124,7 @@ class FSServer(object):
 
         # Wait to workers to finish
         for j in range(self.num_workers):
-            workers[i].join()
+            workers[j].join()
 
         # Tell the Cache and Fs controller to finish
         req_queue.put(None)

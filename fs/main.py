@@ -1,11 +1,11 @@
 import argparse
-from fs_server import FSServer
+from fileserver import FileServer
 
 def main(ip, port, workers, cache_size):
 
     print('FS Server at IP:{ip}, PORT:{port}'.format(ip=ip, port=port))
     
-    server = FSServer(ip, port, workers, cache_size)
+    server = FileServer(ip, port, workers, cache_size)
     server.run()
 
 
