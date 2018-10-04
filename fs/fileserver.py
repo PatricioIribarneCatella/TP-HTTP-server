@@ -52,44 +52,7 @@ class FileServer(object):
             c.sendall(res.encode())
             c.close()
 
-    def _init_worker(self, w, log_queue, req_queue, res_queue):
-
-        quit = False
-        conn_queue = Queue()
-        
-        logger.set_queue(log_queue)
-
-        res_t = Thread(target=self._wait_response, args=(res_queue, conn_queue))
-        res_t.start()
-
-        logger.log('Worker: {} init'.format(w),
-                    "debug", 'fs-server')
-
-        while not quit:
-
-            try:
-                # Accept client connection
-                client_connection, client_address = self.server_socket.accept()
-
-                logger.log('Received connection: {}, in worker: {}'.format(client_address, w),
-                            "debug", 'fs-server')
-
-                # Parse request
-                req_header, req_body = parser.parse_request(client_connection)
-                
-                # Send request to file manager controller
-                req_queue.put((req_header, req_body, w, client_address))
-                conn_queue.put(client_connection)
-
-            except KeyboardInterrupt:
-                quit = True
-
-        # Wait for response thread to finish
-        conn_queue.put(None)
-        res_t.join()
-
-        self.server_socket.close()
-
+ 
     def run(self):
         
         w = 0
