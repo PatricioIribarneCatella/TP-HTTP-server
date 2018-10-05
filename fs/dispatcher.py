@@ -1,48 +1,33 @@
-from multiprocessing import Process
+from replier import Replier
+from dispatcher import Dispatcher
+
+from multiprocessing import Process, Queue
 
 class Dispatcher(Process):
 
-    def __init__(self):
-        # initialize
+    def __init__(self, pid, server_socket, req_queue, res_queue, log_queue):
+        
+        self.server_socket = server_socket
+        self.req_queue = req_queue
+        self.res_queue = res_queue
+        self.log_queue = log_queue
+        self.pid = pid
 
-    def _wait_response(self, res_queue, conn_queue):
-      
-        quit = False
-
-        while not quit:
-
-            # Get connection from worker process
-            c = conn_queue.get()
-
-            if (c == None):
-                quit = True
-                continue
-
-            # Get response from FileManager
-            header, res_body, status, address = res_queue.get()
-
-            # Log request and response status
-            logger.log('(method: {}, path: {}, res_status: {})'.format(
-                            header["method"],
-                            header["path"],
-                            status), "info", 'fs-server')
-            
-            res = parser.build_response(res_body, status)
-            
-            c.sendall(res.encode())
-            c.close()
-
+        super(Dispatcher, self).__init__()
+    
     def run(self):
         
         quit = False
         conn_queue = Queue()
         
-        logger.set_queue(log_queue)
+        # Create Replier thread to handle connections
+        # and responses from the Executor
+        rep = Replier(self.res_queue, conn_queue)
+        rep.start()
 
-        res_t = Thread(target=self._wait_response, args=(res_queue, conn_queue))
-        res_t.start()
-
-        logger.log('Worker: {} init'.format(w),
+        logger.set_queue(self.log_queue)
+        
+        logger.log('Dispatcher: {} init'.format(self.pid),
                     "debug", 'fs-server')
 
         while not quit:
@@ -57,8 +42,10 @@ class Dispatcher(Process):
                 # Parse request
                 req_header, req_body = parser.parse_request(client_connection)
                 
-                # Send request to file manager controller
+                # Send request to Executor
                 req_queue.put((req_header, req_body, w, client_address))
+
+                # Send connection to Replier
                 conn_queue.put(client_connection)
 
             except KeyboardInterrupt:
@@ -66,7 +53,7 @@ class Dispatcher(Process):
 
         # Wait for response thread to finish
         conn_queue.put(None)
-        res_t.join()
+        rep.join()
 
         self.server_socket.close()
 

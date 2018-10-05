@@ -1,8 +1,7 @@
 import signal
 import ../libs/logger
 
-from threading import Thread
-from filemanager import FileManager
+from dispatcher import Dispatcher
 from ../libs/socket import Socket
 
 from multiprocessing import Process, Queue
@@ -25,49 +24,20 @@ class FileServer(object):
 
         fm.handle_request(req_queue, res_queues)
 
-    def _wait_response(self, res_queue, conn_queue):
-      
-        quit = False
-
-        while not quit:
-
-            # Get connection from worker process
-            c = conn_queue.get()
-
-            if (c == None):
-                quit = True
-                continue
-
-            # Get response from FileManager
-            header, res_body, status, address = res_queue.get()
-
-            # Log request and response status
-            logger.log('(method: {}, path: {}, res_status: {})'.format(
-                            header["method"],
-                            header["path"],
-                            status), "info", 'fs-server')
-            
-            res = parser.build_response(res_body, status)
-            
-            c.sendall(res.encode())
-            c.close()
-
- 
     def run(self):
         
         w = 0
-        workers = []
+        dispatchers = []
         
         log_queue = Queue()
         req_queue = Queue()
         res_queues = [Queue() for i in range(self.num_workers)]
        
-        # Create pool of workers
+        # Create pool of dispatchers
         for i in range(self.num_workers):
-            p = Process(target=self._init_worker,
-                    args=(i, log_queue, req_queue, res_queues[i]))
-            workers.append(p)
-            p.start()
+            d = Dispatcher(i, self.server_socket, req_queue, res_queues[i], log_queue)
+            dispatchers.append(d)
+            d.start()
        
         # Set the ignore flag in main process
         # for SIGINT signal
@@ -82,12 +52,12 @@ class FileServer(object):
 
         logger.init('fs-server')
         
-        lt = Thread(target=logger.log_worker, args=(log_queue,))
-        lt.start()
+        lp = Process(target=logger.log_worker, args=(log_queue,))
+        lp.start()
 
         # Wait to workers to finish
         for j in range(self.num_workers):
-            workers[j].join()
+            dispatchers[j].join()
 
         # Tell the Cache and Fs controller to finish
         req_queue.put(None)
@@ -95,7 +65,7 @@ class FileServer(object):
 
         # Tell the logger to finish
         log_queue.put(None)
-        lt.join()
+        lp.join()
 
         print('File System server finished')
 
