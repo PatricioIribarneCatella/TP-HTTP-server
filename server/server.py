@@ -1,9 +1,10 @@
 import signal
-import ../libs/logger
+
+import ..libs.logger as logger
+from ..libs.socket import Socket
 
 from worker import Worker
 from processor import HttpProcessor
-from ../libs/socket import Socket
 
 from multiprocessing import Process, Queue
 

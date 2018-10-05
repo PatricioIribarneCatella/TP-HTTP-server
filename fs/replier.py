@@ -1,5 +1,5 @@
-import ../libs/logger
-import ../libs/parser
+import ..libs.logger as logger
+import ..libs.parser as parser
 
 from threading import Thread
 

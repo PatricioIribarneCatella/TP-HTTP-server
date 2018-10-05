@@ -1,4 +1,4 @@
-import ../libs/logger
+import ..libs.logger as logger
 
 from replier import Replier
 from dispatcher import Dispatcher

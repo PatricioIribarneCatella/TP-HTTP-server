@@ -1,6 +1,7 @@
 import signal
-import ../libs/logger
-from ../libs/socket import Socket
+
+import ..libs.logger as logger
+from ..libs.socket import Socket
 
 from dispatcher import Dispatcher
 from executor import RequestExec

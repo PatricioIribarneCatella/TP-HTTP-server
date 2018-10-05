@@ -1,6 +1,7 @@
 import uuid
 import socket
-import ../libs/parser
+
+import ..libs.parser as parser
 
 class HttpProcessor(object):
 
