@@ -1,8 +1,9 @@
 import signal
 import ../libs/logger
+from ../libs/socket import Socket
 
 from dispatcher import Dispatcher
-from ../libs/socket import Socket
+from executor import RequestExec
 
 from multiprocessing import Process, Queue
 
@@ -18,16 +19,11 @@ class FileServer(object):
         self.num_workers = workers
         self.cache_size = cache_size
 
-    def _init_file_manager(self, req_queue, res_queues):
-
-        fm = FileManager(self.cache_size)
-
-        fm.handle_request(req_queue, res_queues)
-
     def run(self):
-        
-        w = 0
+
         dispatchers = []
+        
+        logger.init('fs-server')
         
         log_queue = Queue()
         req_queue = Queue()
@@ -47,23 +43,22 @@ class FileServer(object):
         self.server_socket.close()
         
         # Create Cache and FS controller
-        c = Process(target=self._init_file_manager, args=(req_queue, res_queues))
-        c.start()
+        r = RequestExec(req_queue, res_queues, self.cache_size)
+        r.start()
 
-        logger.init('fs-server')
-        
+        # Create 'logger' process
         lp = Process(target=logger.log_worker, args=(log_queue,))
         lp.start()
 
-        # Wait to workers to finish
+        # Wait for dispatchers to finish
         for j in range(self.num_workers):
             dispatchers[j].join()
 
-        # Tell the Cache and Fs controller to finish
+        # Tell the 'RequestExec' to finish
         req_queue.put(None)
-        c.join()
+        r.join()
 
-        # Tell the logger to finish
+        # Tell the 'logger' to finish
         log_queue.put(None)
         lp.join()
 

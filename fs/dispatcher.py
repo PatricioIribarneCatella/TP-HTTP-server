@@ -1,3 +1,5 @@
+import ../libs/logger
+
 from replier import Replier
 from dispatcher import Dispatcher
 
@@ -22,7 +24,7 @@ class Dispatcher(Process):
         
         # Create Replier thread to handle connections
         # and responses from the Executor
-        rep = Replier(self.res_queue, conn_queue)
+        rep = Replier(self.res_queue, conn_queue, self.log_queue)
         rep.start()
 
         logger.set_queue(self.log_queue)
@@ -36,7 +38,7 @@ class Dispatcher(Process):
                 # Accept client connection
                 client_connection, client_address = self.server_socket.accept()
 
-                logger.log('Received connection: {}, in worker: {}'.format(client_address, w),
+                logger.log('Received connection: {}, in worker: {}'.format(client_address, self.pid),
                             "debug", 'fs-server')
 
                 # Parse request

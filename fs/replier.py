@@ -15,6 +15,8 @@ class Replier(Thread):
     def run(self):
       
         quit = False
+        
+        logger.set_queue(self.log_queue)
 
         while not quit:
 
