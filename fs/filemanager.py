@@ -4,7 +4,7 @@ from cache import Cache
 
 class FileManager(object):
 
-    def __init__(self, cache_size):
+    def __init__(self, store_dir):
         
         self.method_handler = {
             'get': self._get_handler,
@@ -13,9 +13,7 @@ class FileManager(object):
             'delete': self._del_handler
         }
 
-        self.store_dir = "/data/"
-
-        self.cache = Cache(cache_size, "/data/")
+        self.store_dir = store_dir
 
     def _get_handler(self, header, body):
         
