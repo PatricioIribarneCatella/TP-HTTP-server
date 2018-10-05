@@ -1,4 +1,5 @@
 import ../libs/logger
+import ../libs/parser
 
 from threading import Thread
 
@@ -21,14 +22,14 @@ class Replier(Thread):
         while not quit:
 
             # Get connection from worker process
-            c = conn_queue.get()
+            c = self.conn_queue.get()
 
             if (c == None):
                 quit = True
                 continue
 
             # Get response from FileManager
-            header, res_body, status, address = res_queue.get()
+            header, res_body, status, address = self.res_queue.get()
 
             # Log request and response status
             logger.log('(method: {}, path: {}, res_status: {})'.format(
