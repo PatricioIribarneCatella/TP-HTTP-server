@@ -20,7 +20,7 @@ class RequestExec(Process):
         }
 
         self.fm = FileManager(STORE_DIR)
-        self.cache = Cache(cache_size, STORE_DIR)
+        self.cache = Cache(cache_size)
 
         super(RequestExec, self).__init__()
 
@@ -32,7 +32,20 @@ class RequestExec(Process):
 
         if (status == '404 ERROR'):
             data, status = self.fm.get(uid)
-            self.cache.put(uid, data, 1)
+
+            if (status == '404 ERROR'):
+                return data, status
+            
+            # the 'in_disc' flag is set to 1 because the 
+            # item was obtained from disc
+            response, status = self.cache.put(uid, data, 1)
+
+            # cache is full, have to back up
+            # the LRU item in disc,
+            # but if the cache is zero size the item is
+            # already in disc
+            if (status = '601 ERROR'):
+                self.fm.put(response["uid"], response["data"])
 
         return data, status
 
@@ -40,44 +53,56 @@ class RequestExec(Process):
 
         uid = header['path'].split("/")[3]
 
+        # create a new entry in the cache with 
+        # the 'in_disc' flag turn off
         response, status = self.cache.put(uid, body, 0)
 
         # if the cache is full or size == 0
-        if (status == '600 ERROR'):
-            response, status = self.fm.post(uid, response)
+        if (status == '601 ERROR' or status == '602 ERROR'):
+            self.fm.post(response["uid"], response["data"])
         
-        return response, status
+        return {'id': uid}, '200 OK'
 
     def _put_handler(self, header, body):
 
         uid = header['path'].split("/")[3]
 
-        if (not self.cache.update(uid, body)):
-            try:
-                with open(self.store_dir + uid, "r+") as f:
-                    json.dump(body, f)
-                self.cache.put(uid, body)
-            except FileNotFoundError:
+        response, status = self.cache.update(uid, body)
+
+        # cache is zero size, then directly
+        # store the new data
+        if (status == '602 ERROR'):
+            return self.fm.put(uid, body)
+
+        # the item was not in the cache
+        if (status == '404 ERROR'):
+
+            if not self.fm.check(uid):
                 return {'msg': 'not found'}, '404 ERROR'
-        
+
+            # create a new entry in the cache with
+            # the 'in_disc' falg turn on
+            response, status = self.cache.put(uid, body, 1)
+
+            # if the cache is full or size == 0
+            if (status == '601 ERROR' or status == '602 ERROR'):
+                self.fm.post(response["uid"], response["data"])
+
         return {}, '200 OK'
 
     def _del_handler(self, header, body):
 
-        if (self.cache.empty()):
-            return {'msg': 'not found'}, '404 ERROR'
-
         uid = header['path'].split("/")[3]
 
-        is_in_disc = self.cache.delete(uid)
+        response, status = self.cache.delete(uid)
         
-        if (is_in_disc):
-            try:
-                os.remove(self.store_dir + uid)
-            except FileNotFoundError:
-                return {'msg': 'not found'}, '404 ERROR'
+        # if the entry it's backed up in disc
+        # or if the entry was not there,
+        # have to check in FileManager
+        if (status == '603 ERROR'):
+            response, status = self.fm.delete(uid)
 
-        return {}, '200 OK'
+        return response, status
 
 
     def run(self):
