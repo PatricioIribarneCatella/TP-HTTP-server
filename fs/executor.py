@@ -30,7 +30,8 @@ class RequestExec(Process):
         response, status = self.cache.put(uid, body, in_disc)
 
         # if the cache is full or size == 0
-        if (status == '601 ERROR' or status == '602 ERROR'):
+        if (status == '601 OK' or
+                status == '602 OK'):
             self.fm.post(response["uid"], response["data"])
 
     def _get_handler(self, header, body):
@@ -53,7 +54,7 @@ class RequestExec(Process):
             # the LRU item in disc,
             # but if the cache is zero size the item is
             # already in disc
-            if (status = '601 ERROR'):
+            if (status = '601 OK'):
                 self.fm.put(response["uid"], response["data"])
 
         return data, status
@@ -76,8 +77,9 @@ class RequestExec(Process):
         response, status = self.cache.update(uid, body)
 
         # cache is zero size, then directly
-        # store the new data
-        if (status == '602 ERROR'):
+        # store the new data, could return an 
+        # error message if there were no such file
+        if (status == '602 OK'):
             return self.fm.put(uid, body)
 
         # the item was not in the cache
@@ -102,7 +104,8 @@ class RequestExec(Process):
         # if the entry it's backed up in disc
         # or if the entry was not there,
         # have to check in FileManager
-        if (status == '603 ERROR'):
+        if (status == '603 OK' or
+                status == '404 ERROR'):
             response, status = self.fm.delete(uid)
 
         return response, status

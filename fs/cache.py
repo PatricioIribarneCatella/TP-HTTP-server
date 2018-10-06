@@ -7,17 +7,12 @@ import json
 #
 class Cache(object):
 
-    def __init__(self, size, store_dir):
-        self.store_dir = store_dir
+    def __init__(self, size):
         self.data = {}
         self.size = size
         self.count = 0
 
-    def _persist_data(self, data, uid):
-        with open(self.store_dir + uid, "w") as f:
-           json.dump(data, f)
-
-    def _back_up_data(self):
+    def _remove_data(self):
 
        it = self.data.items()
 
@@ -27,11 +22,11 @@ class Cache(object):
 
        data_lru = self.data[lru[0]]
 
-       self._persist_data(data_lru[0], lru[0])
-
        del self.data[lru[0]]
 
        self.count = self.count - 1
+
+       return data_lru[0], "601 OK"
 
     def _get_max_entry(self):
 
@@ -46,30 +41,27 @@ class Cache(object):
 
        return self.data[new[0]][1]
 
-    def empty(self):
-
-        return (self.count == 0)
-
     def get(self, uid):
         
         if uid not in self.data:
-            return None
+            return "", "404 ERROR"
 
         item = self.data[uid]
 
         self.data[uid] = (item[0], item[1] + 1, item[2])
         
-        return self.data[uid][0]
+        return self.data[uid][0], '200 OK'
 
     def put(self, uid, data, is_in_disc):
        
         if (self.size == 0):
-            self._persist_data(data, uid)
-            self.count = self.count + 1
-            return
+            return "", "602 OK"
+
+        response = uid
+        status = '200 OK'
 
         if (self.count == self.size):
-            self._back_up_data()
+            response, status = self._remove_data()
 
         n = self._get_max_entry()
 
@@ -77,27 +69,34 @@ class Cache(object):
 
         self.count = self.count + 1
 
+        return response, status
+
     def update(self, uid, data):
 
+        if (self.size == 0):
+            return "", "602 OK"
+
         if uid not in self.data:
-            return False
+            return "", "404 ERROR"
 
         item = self.data[uid]
         self.data[uid] = (data, item[1] + 1, item[2])
         
-        return True
+        return "", "200 OK"
 
     def delete(self, uid):
 
-        in_disc = 1
+        if uid not in self.data:
+            return response, "404 ERROR"
 
-        if uid in self.data:
-            in_disc = self.data[uid][2]
-            del self.data[uid]
+        is_in_disc = self.data[uid][2]
+        del self.data[uid]
         
         if (self.count > 0):
             self.count = self.count - 1
         
-        return in_disc
-
+        if (is_in_disc):
+            return "", "603 OK"
+        else:
+            return "", "200 OK"
 
