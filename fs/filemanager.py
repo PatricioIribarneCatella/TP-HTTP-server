@@ -1,6 +1,6 @@
 import os
 import json
-from cache import Cache
+from pathlib import Path
 
 class FileManager(object):
 
@@ -40,4 +40,6 @@ class FileManager(object):
 
         return {}, '200 OK'
 
-
+    def check(self, uid):
+        path = Path(self.store_dir + uid)
+        return path.is_file()
