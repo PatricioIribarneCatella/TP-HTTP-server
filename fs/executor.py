@@ -24,6 +24,15 @@ class RequestExec(Process):
 
         super(RequestExec, self).__init__()
 
+    def _store_item(self, uid, body, in_disc):
+        # create a new entry in the cache with
+        # the 'in_disc' flag
+        response, status = self.cache.put(uid, body, in_disc)
+
+        # if the cache is full or size == 0
+        if (status == '601 ERROR' or status == '602 ERROR'):
+            self.fm.post(response["uid"], response["data"])
+
     def _get_handler(self, header, body):
         
         uid = header['path'].split("/")[3]
@@ -53,14 +62,11 @@ class RequestExec(Process):
 
         uid = header['path'].split("/")[3]
 
-        # create a new entry in the cache with 
-        # the 'in_disc' flag turn off
-        response, status = self.cache.put(uid, body, 0)
+        # store the new item with the flag
+        # 'in_disc' turn off because the item
+        # can not be backed up yet (it's new)
+        self._store_item(uid, body, 0)
 
-        # if the cache is full or size == 0
-        if (status == '601 ERROR' or status == '602 ERROR'):
-            self.fm.post(response["uid"], response["data"])
-        
         return {'id': uid}, '200 OK'
 
     def _put_handler(self, header, body):
@@ -80,13 +86,10 @@ class RequestExec(Process):
             if not self.fm.check(uid):
                 return {'msg': 'not found'}, '404 ERROR'
 
-            # create a new entry in the cache with
-            # the 'in_disc' falg turn on
-            response, status = self.cache.put(uid, body, 1)
-
-            # if the cache is full or size == 0
-            if (status == '601 ERROR' or status == '602 ERROR'):
-                self.fm.post(response["uid"], response["data"])
+            # store the update of the item with
+            # the flag 'in_disc' turn on because
+            # there is a copy of it in disc
+            self._store_item(uid, body, 1)
 
         return {}, '200 OK'
 
