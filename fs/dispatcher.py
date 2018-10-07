@@ -3,7 +3,7 @@ from os import path
 
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-import utils.parser as parser
+import utils.protocol as protocol
 import utils.logger as logger
 
 from replier import Replier
@@ -45,7 +45,7 @@ class Dispatcher(Process):
                             "debug", 'fs-server', self.log_queue)
 
                 # Parse request
-                req_header, req_body = parser.parse_request(client_connection)
+                req_header, req_body = protocol.decode_request(client_connection)
                 
                 # Send request to Executor
                 self.req_queue.put((req_header, req_body, self.dis_id, client_address))

@@ -4,7 +4,7 @@ from os import path
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 import utils.logger as logger
-import utils.parser as parser
+import utils.protocol as protocol
 
 from threading import Thread
 
@@ -40,7 +40,7 @@ class Replier(Thread):
                             header["path"],
                             status), "info", 'fs-server', self.log_queue)
             
-            res = parser.build_response(res_body, status)
+            res = protocol.encode_response(res_body, status)
             
             c.sendall(res.encode())
             c.close()

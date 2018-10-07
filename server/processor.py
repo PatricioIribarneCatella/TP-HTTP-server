@@ -1,11 +1,11 @@
+import sys
 import uuid
 import socket
-import sys
 from os import path
 
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-import utils.parser as parser
+import utils.protocol as protocol
 
 class HttpProcessor(object):
 
@@ -76,7 +76,7 @@ class HttpProcessor(object):
         else:
             req_header['path'] = path
 
-            req = parser.build_request(req_header, req_body)
+            req = protocol.encode_request(req_header, req_body)
             
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -86,13 +86,14 @@ class HttpProcessor(object):
                 
                 s.sendall(req.encode())
                 
-                header, body = parser.parse_response(s)
+                res = protocol.decode_response(s)
                 s.close()
 
             except socket.error:
                 return {'msg': 'internal error'}, '500 ERROR'
 
-            status = header['status']
+            status = res['status']
+            body = res['body']
 
         return body, status
 
