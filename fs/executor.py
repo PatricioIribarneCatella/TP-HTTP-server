@@ -41,6 +41,7 @@ class RequestExec(Process):
         data, status = self.cache.get(uid)
 
         if (status == '404 ERROR'):
+
             data, status = self.fm.get(uid)
 
             if (status == '404 ERROR'):
@@ -55,7 +56,8 @@ class RequestExec(Process):
             # but if the cache is zero size the item is
             # already in disc
             if (status == '601 OK'):
-                self.fm.put(response["uid"], response["data"])
+                response, status = self.fm.post(response["uid"],
+                                                response["data"])
 
         return data, status
 
