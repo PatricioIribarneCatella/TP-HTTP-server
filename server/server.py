@@ -1,7 +1,11 @@
+import sys
 import signal
+from os import path
 
-import ..libs.logger as logger
-from ..libs.socket import Socket
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
+import utils.logger as logger
+from utils.socket import Socket
 
 from worker import Worker
 from processor import HttpProcessor

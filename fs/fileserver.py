@@ -1,7 +1,11 @@
+import sys
 import signal
+from os import path
 
-import ..libs.logger as logger
-from ..libs.socket import Socket
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
+import utils.logger as logger
+from utils.socket import Socket
 
 from dispatcher import Dispatcher
 from executor import RequestExec
@@ -10,7 +14,7 @@ from multiprocessing import Process, Queue
 
 class FileServer(object):
 
-    def __init__(self, ip, port, workers, cache_size):
+    def __init__(self, ip, port, workers, cache_size, max_conn):
        
         # Create the socket
         self.server_socket = Socket(ip, port, max_conn)

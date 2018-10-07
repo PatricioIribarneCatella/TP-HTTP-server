@@ -1,5 +1,10 @@
-import ..libs.logger as logger
-import ..libs.parser as parser
+import sys
+from os import path
+
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
+import utils.logger as logger
+import utils.parser as parser
 
 from multiprocessing import Process
 

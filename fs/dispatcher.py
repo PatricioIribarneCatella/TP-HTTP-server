@@ -1,19 +1,23 @@
-import ..libs.logger as logger
+import sys
+from os import path
+
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
+import utils.logger as logger
 
 from replier import Replier
-from dispatcher import Dispatcher
 
 from multiprocessing import Process, Queue
 
 class Dispatcher(Process):
 
-    def __init__(self, pid, server_socket, req_queue, res_queue, log_queue):
+    def __init__(self, dis_id, server_socket, req_queue, res_queue, log_queue):
         
         self.server_socket = server_socket
         self.req_queue = req_queue
         self.res_queue = res_queue
         self.log_queue = log_queue
-        self.pid = pid
+        self.dis_id = dis_id
 
         super(Dispatcher, self).__init__()
     
@@ -22,30 +26,30 @@ class Dispatcher(Process):
         quit = False
         conn_queue = Queue()
         
-        # Create Replier thread to handle connections
-        # and responses from the Executor
-        rep = Replier(self.res_queue, conn_queue, self.log_queue)
-        rep.start()
-
         logger.set_queue(self.log_queue)
         
-        logger.log('Dispatcher: {} init'.format(self.pid),
-                    "debug", 'fs-server')
+        logger.log('Dispatcher: {} init'.format(self.dis_id),
+                    "info", 'fs-server')
 
+        # Create Replier thread to handle connections
+        # and responses from the Executor
+        rep = Replier(self.res_queue, conn_queue, logger)
+        rep.start()
+        
         while not quit:
 
             try:
                 # Accept client connection
                 client_connection, client_address = self.server_socket.accept()
 
-                logger.log('Received connection: {}, in worker: {}'.format(client_address, self.pid),
+                logger.log('Received connection: {}, in worker: {}'.format(client_address, self.dis_id),
                             "debug", 'fs-server')
 
                 # Parse request
                 req_header, req_body = parser.parse_request(client_connection)
                 
                 # Send request to Executor
-                req_queue.put((req_header, req_body, w, client_address))
+                req_queue.put((req_header, req_body, self.dis_id, client_address))
 
                 # Send connection to Replier
                 conn_queue.put(client_connection)

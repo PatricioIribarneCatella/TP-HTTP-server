@@ -13,7 +13,7 @@ def init(log_file_name):
     
     config = {}
 
-    with open("log-config.json", "r") as f:
+    with open("./utils/log-config.json", "r") as f:
         config = json.load(f)
 
     config['handlers']['file']['filename'] = log_file_name + '.log'

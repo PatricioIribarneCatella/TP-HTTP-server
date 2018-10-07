@@ -54,7 +54,7 @@ class RequestExec(Process):
             # the LRU item in disc,
             # but if the cache is zero size the item is
             # already in disc
-            if (status = '601 OK'):
+            if (status == '601 OK'):
                 self.fm.put(response["uid"], response["data"])
 
         return data, status
