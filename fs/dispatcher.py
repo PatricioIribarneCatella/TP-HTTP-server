@@ -3,6 +3,7 @@ from os import path
 
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
+import utils.parser as parser
 import utils.logger as logger
 
 from replier import Replier
@@ -49,7 +50,7 @@ class Dispatcher(Process):
                 req_header, req_body = parser.parse_request(client_connection)
                 
                 # Send request to Executor
-                req_queue.put((req_header, req_body, self.dis_id, client_address))
+                self.req_queue.put((req_header, req_body, self.dis_id, client_address))
 
                 # Send connection to Replier
                 conn_queue.put(client_connection)

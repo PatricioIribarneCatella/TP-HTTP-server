@@ -26,7 +26,7 @@ class Cache(object):
 
        self.count = self.count - 1
 
-       return data_lru[0], "601 OK"
+       return {"uid": lru[0], "data": data_lru[0]}, "601 OK"
 
     def _get_max_entry(self):
 
@@ -55,7 +55,7 @@ class Cache(object):
     def put(self, uid, data, is_in_disc):
        
         if (self.size == 0):
-            return "", "602 OK"
+            return {"uid": uid, "data": data}, "602 OK"
 
         response = uid
         status = '200 OK'
