@@ -6,7 +6,7 @@ HTTP server concurrente (Sistemas Distribuidos I)
 
 ```bash
 $ python3 server/main.py [--workers=NUM(1) |
-			  --ip=IP(localhost) |
+			  --ip=IP('localhost') |
 			  --port=PORT(8888) |
 			  --urlfs=URL('localhost') |
 			  --connections=MAX_CONN(100)]
