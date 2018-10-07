@@ -1,3 +1,6 @@
+import json
+
+#
 # Protocol Decoder and Encoder for sending 
 # and receiving requests to File System Server
 #
@@ -46,13 +49,12 @@ def encode_request(header, body):
 
     body = json.dumps(body)
 
-    req = opcodes[header["method"]] +
-          '\n' +
-          header["path"] +
-          '\n' +
-          str(len(body)) +
-          '\n' +
-          body
+    method = header['method'].lower()
+
+    req = "{opcode}\n{path}\n{length}\n{data}".format(opcode=opcodes[method],
+                                                      path=header['path'],
+                                                      length=str(len(body)),
+                                                      data=body)
 
     return req 
 
@@ -64,9 +66,12 @@ def decode_request(connection):
 
     length = _get_line(connection, '\n')
 
-    body = connection.recv(int(length) + 1)
+    # Body parsing
+    data = connection.recv(int(length) + 1)
+    data = data.decode()
+    body = json.loads(data)
 
-    method = methods[opcode]
+    method = methods[opcode].upper()
 
     return {"method": method, "path": path}, body
 
@@ -74,11 +79,9 @@ def encode_response(body, status):
 
     body = json.dumps(body)
 
-    res = status +
-          '\n' +
-          str(len(body)) +
-          '\n' +
-          body
+    res = "{stat}\n{length}\n{data}".format(stat=status,
+                                            length=str(len(body)),
+                                            data=body)
 
     return res
 
@@ -88,10 +91,12 @@ def decode_response(connection):
 
     length = _get_line(connection, '\n')
 
-    body = connection.recv(int(length) + 1)
+    data = connection.recv(int(length) + 1)
+    data = data.decode()
+    body = json.loads(data)
 
     return {
         "status": status,
-        "body": body    
+        "body": body
     }
 
