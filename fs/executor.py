@@ -52,12 +52,15 @@ class RequestExec(Process):
             response, status = self.cache.put(uid, data, 1)
 
             # cache is full, have to back up
-            # the LRU item in disc,
-            # but if the cache is zero size the item is
-            # already in disc
+            # the LRU item in disc
             if (status == '601 OK'):
                 response, status = self.fm.post(response["uid"],
                                                 response["data"])
+
+            # but if the cache is zero size the item is
+            # already in disc
+            if (status == '602 OK'):
+                status = '200 OK'
 
         return data, status
 
