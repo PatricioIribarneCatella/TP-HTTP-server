@@ -50,11 +50,11 @@ class HttpProcessor(object):
 
     def _put_handler(self, path):
 
-        return _get_handler(path)
+        return self._get_handler(path)
 
     def _del_handler(self, path):
         
-        return _get_handler(self, path)
+        return self._get_handler(path)
 
     def _handle_request(self, method, path):
 

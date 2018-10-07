@@ -87,7 +87,7 @@ class Cache(object):
     def delete(self, uid):
 
         if uid not in self.data:
-            return response, "404 ERROR"
+            return "", "404 ERROR"
 
         is_in_disc = self.data[uid][2]
         del self.data[uid]
