@@ -53,7 +53,6 @@ class Server(object):
 
         # Tell the logger to finish
         log_queue.put(None)
-        # Wait for logger
         logging.join()
 
         print('Server finished')

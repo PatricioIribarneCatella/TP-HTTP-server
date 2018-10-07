@@ -23,10 +23,8 @@ class Worker(Process):
         
         quit = False
 
-        logger.set_queue(self.log_queue)
-
         logger.log('Worker: {} init'.format(self.wid),
-                    "debug", 'http-server')
+                    "debug", 'http-server', self.log_queue)
 
         while not quit:
 
@@ -35,7 +33,7 @@ class Worker(Process):
                 client_connection, client_address = self.server_socket.accept()
 
                 logger.log('Received connection: {}, in worker: {}'.format(client_address, self.wid),
-                            "debug", 'http-server')
+                            "debug", 'http-server', self.log_queue)
 
                 # Parse request
                 req_header, req_body = parser.parse_request(client_connection)
@@ -47,7 +45,7 @@ class Worker(Process):
                 logger.log('(method: {}, path: {}, res_status: {})'.format(
                                 req_header["method"],
                                 req_header["path"],
-                                res_status), "info", 'http-server')
+                                res_status), "info", 'http-server', self.log_queue)
                 
                 res = parser.build_response(res_body, res_status)
                 

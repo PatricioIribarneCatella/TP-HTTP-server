@@ -20,19 +20,19 @@ def init(log_file_name):
     config['handlers']['errors']['filename'] = log_file_name + '-errors.log'
     logging.config.dictConfig(config)
 
-def set_queue(q):
-    
-    qh = logging.handlers.QueueHandler(q)
     root = logging.getLogger()
     root.setLevel(logging.DEBUG)
-    root.addHandler(qh)
 
-def log(message, level, logger_name):
+def log(message, level, logger_name, log_queue):
     
-    logger = logging.getLogger(logger_name)
-    logger.log(levels[level], message)
+    log_queue.put({
+        "message": message,
+        "level": levels[level],
+        "name": logger_name
+    })
 
 def log_worker(q):
+
     quit = False
 
     while not quit:
@@ -43,6 +43,10 @@ def log_worker(q):
             quit = True
             continue
         
-        logger = logging.getLogger(record.name)
-        logger.handle(record)
+        name = record["name"]
+        level = record["level"]
+        msg = record["message"]
+
+        logger = logging.getLogger(name)
+        logger.log(level, msg)
 

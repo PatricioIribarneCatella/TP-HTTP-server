@@ -3,17 +3,18 @@ from os import path
 
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
+import utils.logger as logger
 import utils.parser as parser
 
 from threading import Thread
 
 class Replier(Thread):
 
-    def __init__(self, res_queue, conn_queue, logger):
+    def __init__(self, res_queue, conn_queue, log_queue):
 
         self.res_queue = res_queue
         self.conn_queue = conn_queue
-        self.logger = logger
+        self.log_queue = log_queue
 
         super(Replier, self).__init__()
 
@@ -34,10 +35,10 @@ class Replier(Thread):
             header, res_body, status, address = self.res_queue.get()
 
             # Log request and response status
-            self.logger.log('(method: {}, path: {}, res_status: {})'.format(
+            logger.log('(method: {}, path: {}, res_status: {})'.format(
                             header["method"],
                             header["path"],
-                            status), "info", 'fs-server')
+                            status), "info", 'fs-server', self.log_queue)
             
             res = parser.build_response(res_body, status)
             

@@ -27,14 +27,12 @@ class Dispatcher(Process):
         quit = False
         conn_queue = Queue()
         
-        logger.set_queue(self.log_queue)
-        
         logger.log('Dispatcher: {} init'.format(self.dis_id),
-                    "info", 'fs-server')
+                    "info", 'fs-server', self.log_queue)
 
         # Create Replier thread to handle connections
         # and responses from the Executor
-        rep = Replier(self.res_queue, conn_queue, logger)
+        rep = Replier(self.res_queue, conn_queue, self.log_queue)
         rep.start()
         
         while not quit:
@@ -44,7 +42,7 @@ class Dispatcher(Process):
                 client_connection, client_address = self.server_socket.accept()
 
                 logger.log('Received connection: {}, in worker: {}'.format(client_address, self.dis_id),
-                            "debug", 'fs-server')
+                            "debug", 'fs-server', self.log_queue)
 
                 # Parse request
                 req_header, req_body = parser.parse_request(client_connection)
