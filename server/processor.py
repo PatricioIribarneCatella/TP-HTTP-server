@@ -6,6 +6,7 @@ from os import path
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 import utils.protocol as protocol
+import utils.responses as response
 
 class HttpProcessor(object):
 
@@ -71,29 +72,28 @@ class HttpProcessor(object):
                                                   req_header['path'])
 
         if (error != ""):
-            body = {'msg': error}
-            status = '405 ERROR'
-        else:
-            req_header['path'] = path
+            return response.build_id_error(error)
 
-            req = protocol.encode_request(req_header, req_body)
+        req_header['path'] = path
+
+        req = protocol.encode_request(req_header, req_body)
+        
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        try:
             
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((fs_id, 9999))
+            
+            s.sendall(req.encode())
+            
+            res = protocol.decode_response(s)
+            s.close()
 
-            try:
-                
-                s.connect((fs_id, 9999))
-                
-                s.sendall(req.encode())
-                
-                res = protocol.decode_response(s)
-                s.close()
+        except socket.error:
+            return response.build_internal_error()
 
-            except socket.error:
-                return {'msg': 'internal error'}, '500 ERROR'
-
-            status = res['status']
-            body = res['body']
+        status = res['status']
+        body = res['body']
 
         return body, status
 

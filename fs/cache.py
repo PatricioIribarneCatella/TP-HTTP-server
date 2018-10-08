@@ -28,7 +28,14 @@
 #     a copy in disc. If the item has to be deleted from the
 #     cache it also has to be erased from disc.
 #
-#
+
+import sys
+from os import path
+
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
+import utils.responses as response
+
 class Cache(object):
 
     def __init__(self, size):
@@ -50,7 +57,12 @@ class Cache(object):
 
        self.count -= 1
 
-       return {"uid": lru[0], "data": data_lru[0]}, "601 OK"
+       r = response.build_cache_full_error({
+                        "uid": lru[0],
+                        "data": data_lru[0]
+       })
+
+       return r
 
     def _get_max_entry(self):
 
@@ -68,24 +80,28 @@ class Cache(object):
     def get(self, uid):
         
         if uid not in self.data:
-            return "", "404 ERROR"
+            return response.build_not_found_error()
 
         item = self.data[uid]
 
         self.data[uid] = (item[0], item[1] + 1, item[2])
         
-        return self.data[uid][0], '200 OK'
+        return response.build_successful(self.data[uid][0])
 
     def put(self, uid, data, is_in_disc):
        
         if (self.size == 0):
-            return {"uid": uid, "data": data}, "602 OK"
+            r = response.build_cache_zero_error({
+                            "uid": uid,
+                            "data": data
+            })
+            return r
 
-        response = uid
-        status = '200 OK'
+        res = uid
+        status = response.OK_STATUS
 
         if (self.count == self.size):
-            response, status = self._remove_data()
+            res, status = self._remove_data()
 
         n = self._get_max_entry()
 
@@ -93,25 +109,25 @@ class Cache(object):
 
         self.count += 1
 
-        return response, status
+        return res, status
 
     def update(self, uid, data):
 
         if (self.size == 0):
-            return "", "602 OK"
+            return response.build_cache_zero_error("")
 
         if uid not in self.data:
-            return "", "404 ERROR"
+            return response.build_not_found_error()
 
         item = self.data[uid]
         self.data[uid] = (data, item[1] + 1, item[2])
         
-        return "", "200 OK"
+        return response.build_successful("")
 
     def delete(self, uid):
 
         if uid not in self.data:
-            return "", "404 ERROR"
+            return response.build_not_found_error()
 
         is_in_disc = self.data[uid][2]
         del self.data[uid]
@@ -120,7 +136,7 @@ class Cache(object):
             self.count -= 1
         
         if (is_in_disc):
-            return "", "603 OK"
-        else:
-            return "", "200 OK"
+            return response.build_in_disc_error("")
+        
+        return response.build_successful("")
 

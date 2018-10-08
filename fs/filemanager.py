@@ -1,6 +1,11 @@
-import os
+import sys
 import json
 from pathlib import Path
+from os import path, remove
+
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
+import utils.responses as response
 
 class FileManager(object):
 
@@ -12,34 +17,35 @@ class FileManager(object):
             with open(self.store_dir + uid, "r") as f:
                 data = json.load(f)
         except FileNotFoundError:
-            return {'msg': 'not found'}, '404 ERROR'
+            return response.build_not_found_error()
 
-        return data, '200 OK'
+        return response.build_successful(data)
 
     def post(self, uid, data):
 
         with open(self.store_dir + uid, "w") as f:
             json.dump(data, f)
         
-        return {'id': uid}, '200 OK'
+        return response.build_successful({'id': uid})
 
     def put(self, uid, data):
         try:
             with open(self.store_dir + uid, "r+") as f:
                 json.dump(data, f)
         except FileNotFoundError:
-            return {'msg': 'not found'}, '404 ERROR'
+            return response.build_not_found_error()
     
-        return {}, '200 OK'
+        return response.build_successful({})
 
     def delete(self, uid):
         try:
-            os.remove(self.store_dir + uid)
+            remove(self.store_dir + uid)
         except FileNotFoundError:
-            return {'msg': 'not found'}, '404 ERROR'
+            return response.build_not_found_error()
 
-        return {}, '200 OK'
+        return response.build_successful({})
 
     def check(self, uid):
         path = Path(self.store_dir + uid)
         return path.is_file()
+

@@ -1,7 +1,14 @@
+import sys
+from os import path
+
 from cache import Cache
 from filemanager import FileManager
 
 from multiprocessing import Process
+
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
+import utils.responses as res
 
 STORE_DIR = "/data/"
 
@@ -30,8 +37,8 @@ class RequestExec(Process):
         response, status = self.cache.put(uid, body, in_disc)
 
         # if the cache is full or size == 0
-        if (status == '601 OK' or
-                status == '602 OK'):
+        if (status == res.CACHE_FULL_STATUS or
+                status == res.CACHE_ZERO_SIZE_STATUS):
             self.fm.post(response["uid"], response["data"])
 
     def _get_handler(self, header, body):
@@ -40,11 +47,11 @@ class RequestExec(Process):
         
         data, status = self.cache.get(uid)
 
-        if (status == '404 ERROR'):
+        if (status == res.NOT_FOUND_STATUS):
 
             data, status = self.fm.get(uid)
 
-            if (status == '404 ERROR'):
+            if (status == res.NOT_FOUND_STATUS):
                 return data, status
             
             # the 'in_disc' flag is set to 1 because the 
@@ -53,14 +60,14 @@ class RequestExec(Process):
 
             # cache is full, have to back up
             # the LRU item in disc
-            if (status == '601 OK'):
+            if (status == res.CACHE_FULL_STATUS):
                 response, status = self.fm.post(response["uid"],
                                                 response["data"])
 
             # but if the cache is zero size the item is
             # already in disc
-            if (status == '602 OK'):
-                status = '200 OK'
+            if (status == res.CACHE_ZERO_SIZE_STATUS):
+                status = res.OK_STATUS
 
         return data, status
 
@@ -73,7 +80,7 @@ class RequestExec(Process):
         # can not be backed up yet (it's new)
         self._store_item(uid, body, 0)
 
-        return {'id': uid}, '200 OK'
+        return res.build_successful({'id': uid})
 
     def _put_handler(self, header, body):
 
@@ -82,23 +89,23 @@ class RequestExec(Process):
         response, status = self.cache.update(uid, body)
 
         # cache is zero size, then directly
-        # store the new data, could return an 
+        # store the new data, it could return an 
         # error message if there were no such file
-        if (status == '602 OK'):
+        if (status == res.CACHE_ZERO_SIZE_STATUS):
             return self.fm.put(uid, body)
 
         # the item was not in the cache
-        if (status == '404 ERROR'):
+        if (status == res.NOT_FOUND_STATUS):
 
             if not self.fm.check(uid):
-                return {'msg': 'not found'}, '404 ERROR'
+                return res.build_not_found_error()
 
             # store the update of the item with
             # the flag 'in_disc' turn on because
             # there is a copy of it in disc
             self._store_item(uid, body, 1)
 
-        return {}, '200 OK'
+        return res.build_successful({})
 
     def _del_handler(self, header, body):
 
@@ -109,8 +116,8 @@ class RequestExec(Process):
         # if the entry it's backed up in disc
         # or if the entry was not there,
         # have to check in FileManager
-        if (status == '603 OK' or
-                status == '404 ERROR'):
+        if (status == res.IN_DISC_STATUS or
+                status == res.NOT_FOUND_STATUS):
             response, status = self.fm.delete(uid)
 
         return response, status
