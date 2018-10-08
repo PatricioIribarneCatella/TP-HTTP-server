@@ -37,6 +37,8 @@ $ ./run.sh --fs=FSs --workers=NUM --fsworkers=NUM --cache=SIZE [--urlfs=URL('htt
 - Dependencias: [_requests_](http://www.python-requests.org/en/master/)
 
 ```bash
-$ python3 load_data_test.py [--requests=NUM | --testers=NUM]
+$ python3 load_data_test.py [--requests=NUM(1) | --testers=NUM(1)]
+
+$ python3 warm_up_test.py [--requests=NUM(1)]
 ```
 
