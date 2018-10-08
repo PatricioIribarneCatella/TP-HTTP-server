@@ -1,11 +1,11 @@
 import argparse
-from fs_server import FSServer
+from fileserver import FileServer
 
-def main(ip, port, workers, cache_size):
+def main(ip, port, workers, cache_size, max_conn):
 
     print('FS Server at IP:{ip}, PORT:{port}'.format(ip=ip, port=port))
     
-    server = FSServer(ip, port, workers, cache_size)
+    server = FileServer(ip, port, workers, cache_size, max_conn)
     server.run()
 
 
@@ -37,7 +37,13 @@ if __name__ == '__main__':
             default=100,
             help='Number of entries in the cache'
     )
+    parser.add_argument(
+            '--connections',
+            type=int,
+            default=100,
+            help='The max number of waiting connections per worker'
+    )
     args = parser.parse_args()
     
-    main(args.ip, args.port, args.fsworkers, args.cache)
+    main(args.ip, args.port, args.fsworkers, args.cache, args.connections)
 

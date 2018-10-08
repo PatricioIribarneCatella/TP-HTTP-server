@@ -2,18 +2,13 @@ import os
 import argparse
 from server import Server
 
-def main(ip, port, workers, app_path, url_fs):
+def main(ip, port, workers, url_fs, max_conn):
     
-    module, app = app_path.split(':')
-    module = __import__(module)
-    app = getattr(module, app)
-
     print('Server at IP:{ip}, PORT:{port}'.format(ip=ip, port=port))
-    
-    server = Server(ip, port,
-                workers, app,
-                int(os.getenv('FS_SCALE', 1)),
-                url_fs)
+
+    num_fs = int(os.getenv('FS_SCALE', 1))
+
+    server = Server(ip, port, workers, num_fs, url_fs, max_conn)
     server.run()
 
 
@@ -45,10 +40,12 @@ if __name__ == '__main__':
             help='File System network name'
     )
     parser.add_argument(
-            '--app',
-            help='The app that is going to be run in each worker (module:function)'
+            '--connections',
+            type=int,
+            default=100,
+            help='The max number of waiting connections per worker'
     )
     args = parser.parse_args()
     
-    main(args.ip, args.port, args.workers, args.app, args.urlfs)
+    main(args.ip, args.port, args.workers, args.urlfs, args.connections)
 

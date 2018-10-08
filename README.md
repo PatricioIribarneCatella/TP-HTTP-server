@@ -5,15 +5,20 @@ HTTP server concurrente (Sistemas Distribuidos I)
 ### Ejecutar
 
 ```bash
-$ python3 main.py --app=[module:function] [--workers=NUM(1) |
-				--ip=IP(localhost) |
-				--port=PORT(8888) |
-				--urlfs=URL('localhost')]
+$ python3 server/main.py [--workers=NUM(1) |
+			  --ip=IP('localhost') |
+			  --port=PORT(8888) |
+			  --urlfs=URL('localhost') |
+			  --connections=MAX_CONN(100)]
 ```
 En otra terminal ejecutar:
 
 ```bash
-$ python3 fs.py [--fsworkers=NUM(1) | --ip=IP('localhost') | --port=PORT(9999) | --cache=SIZE(100 entries)]
+$ python3 fs/main.py [--fsworkers=NUM(1) |
+		      --ip=IP('localhost') |
+		      --port=PORT(9999) | 
+		      --cache=SIZE(100 entries) |
+		      --connections=MAX_CONN(100)]
 ```
 
 #### Docker
