@@ -1,7 +1,15 @@
+import time
 import argparse
 import requests
 
 URL = "http://localhost:8888/owner/entity"
+
+def get_data(i):
+
+    return {
+        "username": "user_" + str(i),
+        "password": "pass_" + str(i),
+    }
 
 def posts(n):
     
@@ -18,7 +26,7 @@ def posts(n):
                     header='Content-Type: application/json',
                     url=URL))
 
-        payload = {"username": "user_" + str(i), "password": "pass_" + str(i)}
+        payload = get_data(i)
         pr = requests.post(URL, json=payload)
 
         print("Status code: {}".format(pr.status_code))
@@ -47,9 +55,15 @@ def main(n):
 
     print("url: {}\n".format(URL))
 
+    ti = time.time()
+
     ids = posts(n)
 
     gets(ids)
+
+    tf = time.time()
+
+    print("Time consumed: {}".format(tf - ti))
 
 if __name__ == '__main__':
 
