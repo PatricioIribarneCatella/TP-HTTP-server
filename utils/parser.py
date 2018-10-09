@@ -39,37 +39,6 @@ def _parse_body(connection):
 
     return body
 
-# Parse a HTTP request and returns
-# (header, body)
-def parse_request(connection):
-
-    header = {}
-    body = ""
-
-    # First line contains information about client´s request
-    line = _get_line(connection, '\n')
-    (header['method'], header['path'], header['version']) = line.split()
-    
-    if (header['method'] != 'GET' and
-            header['method'] != 'DELETE'):
-        body = _parse_body(connection)
-            
-    return header, body
-
-
-# Parse a HTTP response
-# (header, body)
-def parse_response(connection):
-
-    header = {}
-
-    # First line contains information about server´s response
-    line = _get_line(connection, '\n')
-    (header['version'], header['status'], header['status-name']) = line.split()
-
-    body = _parse_body(connection)
-        
-    return header, body
 
 # Builds the http packet
 def _build_http_packet(initial_header, body):
@@ -94,6 +63,23 @@ def _build_http_packet(initial_header, body):
 
     return packet
 
+# Parse a HTTP request and returns
+# (header, body)
+def parse_request(connection):
+
+    header = {}
+    body = ""
+
+    # First line contains information about client´s request
+    line = _get_line(connection, '\n')
+    (header['method'], header['path'], header['version']) = line.split()
+    
+    if (header['method'] != 'GET' and
+            header['method'] != 'DELETE'):
+        body = _parse_body(connection)
+            
+    return header, body
+
 # From a response body builds a HTTP response
 def build_response(res_body, status):
 
@@ -101,13 +87,4 @@ def build_response(res_body, status):
 
     return _build_http_packet(h, res_body) 
 
-# From header and body builds a HTTP request
-def build_request(header, req_body):
-
-    h = '{method} {path} {http}\n'.format(
-                    method=header['method'],
-                    path=header['path'],
-                    http=header['version'])
-
-    return _build_http_packet(h, req_body)
 
