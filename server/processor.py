@@ -10,9 +10,11 @@ import utils.responses as response
 
 class HttpProcessor(object):
 
-    def __init__(self, num_fs, url_fs):
+    def __init__(self, num_fs, url_fs, cache):
+
         self.num_fs = num_fs
         self.url_fs = url_fs
+        self.cache = cache
         
         # Verb request handlers
         self.handlers = {
