@@ -2,13 +2,14 @@ import os
 import argparse
 from server import Server
 
-def main(ip, port, workers, url_fs, max_conn):
+def main(ip, port, workers, url_fs, cache_size, max_conn):
     
     print('Server at IP:{ip}, PORT:{port}'.format(ip=ip, port=port))
 
     num_fs = int(os.getenv('FS_SCALE', 1))
 
-    server = Server(ip, port, workers, num_fs, url_fs, max_conn)
+    server = Server(ip, port, workers, cache_size,
+                    num_fs, url_fs, max_conn)
     server.run()
 
 
@@ -40,6 +41,12 @@ if __name__ == '__main__':
             help='File System network name'
     )
     parser.add_argument(
+            '--cache',
+            type=int,
+            default=100,
+            help='The cache size'
+    )
+    parser.add_argument(
             '--connections',
             type=int,
             default=100,
@@ -47,5 +54,6 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     
-    main(args.ip, args.port, args.workers, args.urlfs, args.connections)
+    main(args.ip, args.port, args.workers,
+            args.urlfs, args.cache, args.connections)
 
