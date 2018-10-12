@@ -8,6 +8,7 @@ HTTP server concurrente (Sistemas Distribuidos I)
 $ python3 server/main.py [--workers=NUM(1) |
 			  --ip=IP('localhost') |
 			  --port=PORT(8888) |
+			  --cache=SIZE(100)
 			  --urlfs=URL('localhost') |
 			  --connections=MAX_CONN(100)]
 ```
@@ -17,7 +18,7 @@ En otra terminal ejecutar:
 $ python3 fs/main.py [--fsworkers=NUM(1) |
 		      --ip=IP('localhost') |
 		      --port=PORT(9999) | 
-		      --cache=SIZE(100 entries) |
+		      --fscache=SIZE(100) |
 		      --connections=MAX_CONN(100)]
 ```
 
@@ -26,7 +27,7 @@ $ python3 fs/main.py [--fsworkers=NUM(1) |
 - Dependencias: [_Docker_](https://docs.docker.com/install/) y [_Docker Compose_](https://docs.docker.com/compose/install/)
 
 ```bash
-$ ./run.sh --fs=FSs --workers=NUM --fsworkers=NUM --cache=SIZE [--urlfs=URL('http_fs_')]
+$ ./run.sh --fs=FSs --workers=NUM --fsworkers=NUM --cache=SIZE --fscache=SIZE [--urlfs=URL('http_fs_')]
 
 	FSs: Cantidad de containers para el File System
 	URL: El nombre o url donde se encuentra el FS
