@@ -1,18 +1,19 @@
 import sys
 import uuid
-import socket
 from os import path
+
+from fsmanager import FileServerManager
 
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-import utils.protocol as protocol
-import utils.responses as response
+import utils.responses as res
 
 class HttpProcessor(object):
 
-    def __init__(self, num_fs, url_fs):
-        self.num_fs = num_fs
-        self.url_fs = url_fs
+    def __init__(self, num_fs, url_fs, cache):
+
+        self.cache = cache
+        self.fs = FileServerManager(num_fs, url_fs)
         
         # Verb request handlers
         self.handlers = {
@@ -22,78 +23,143 @@ class HttpProcessor(object):
             'delete': self._del_handler
         }
 
-    def _get_handler(self, path):
+    def _get_item_id(self, path, method):
 
-        s = path.split("/")
+        uid = ""
 
-        if (len(s) < 4):
-            return "", path, "does not contain id"
+        if method in ["GET", "PUT", "DELETE"]:
 
-        uid = s[3]
+            s = path.split("/")
 
-        h = hash(uid[0:8]) % self.num_fs + 1
-        
-        if (self.url_fs == 'localhost'):
-            return self.url_fs, path, ""
+            if (len(s) < 4):
+                return "", "does not contain id"
 
-        return self.url_fs + str(h), path, ""
+            uid = s[3]
+        else:
+            uid = str(uuid.uuid4())
 
-    def _post_handler(self, path):
+        return uid, None
 
-        uid = str(uuid.uuid4())
 
-        h = hash(uid[0:8]) % self.num_fs + 1
+    def _store_item(self, uid, data, in_disc):
 
-        if (self.url_fs == 'localhost'):
-            return self.url_fs, path + "/" + uid, ""
+        response, status = self.cache.put(uid, body, in_disc)
 
-        return self.url_fs + str(h), path + "/" + uid, ""
+        if (status == res.CACHE_FULL_STATUS or
+                status == res.CACHE_ZERO_SIZE_STATUS):
+            self.fs.post(response["uid"],
+                                response["data"])
 
-    def _put_handler(self, path):
+    def _get_handler(self, header, body):
 
-        return self._get_handler(path)
+        uid, error = self._get_item_id(header["path"],
+                                       header["method"])
 
-    def _del_handler(self, path):
-        
-        return self._get_handler(path)
+        if (error != None):
+            return res.buid_id_error(error)
 
-    def _handle_request(self, method, path):
+        data, status = self.cache.get(uid)
 
-        handler = self.handlers.get(method.lower())
+        if (status == res.NOT_FOUND_STATUS):
 
-        return handler(path)
+            data, status = self.fs.get(uid)
+    
+            if (status == res.NOT_FOUND_STATUS):
+                return data, status
+            
+            # the 'in_disc' flag is set to 1 because the
+            # data was obtained from disc
+            response, status = self.cache.put(uid, data, 1)
+
+            # cache is full, have to back up the LRU item
+            if (status == res.CACHE_FULL_STATUS):
+                response, status = self.fs.post(response["uid"],
+                                                response["data"])
+
+            # but if the cache is zero size the item is
+            # already in disc
+            if (status == res.CACHE_ZERO_SIZE_STATUS):
+                status = res.OK_STATUS
+
+        return data, status
+
+    def _post_handler(self, header, body):
+
+        uid, error = self._get_item_id(header["path"],
+                                       header["method"])
+
+        if (error != None):
+            return res.buid_id_error(error)
+
+        response, status = self.cache.put(uid, body, 0)
+
+        if (status == res.CACHE_FULL_STATUS or
+                status == res.CACHE_ZERO_SIZE_STATUS):
+            return self.fs.post(response["uid"],
+                                response["data"])
+
+        return res.build_successful({'id': uid})
+
+    def _put_handler(self, header, body):
+
+        uid, error = self._get_item_id(header["path"],
+                                       header["method"])
+
+        if (error != None):
+            return res.buid_id_error(error)
+
+        response, status = self.cache.update(uid, body)
+
+        # cache is zero size, then directly
+        # store the new data, it could return an 
+        # error message if there were no such file
+        if (status == res.CACHE_ZERO_SIZE_STATUS):
+            return self.fs.put(uid, body)
+
+        # the item was not in the cache
+        if (status == res.NOT_FOUND_STATUS):
+
+            if not self.fs.check(uid):
+                return res.build_not_found_error()
+
+            # store the update of the item with
+            # the flag 'in_disc' turn on because
+            # there is a copy of it in disc
+            self._store_item(uid, body, 1)
+
+        return res.build_successful({})
+
+    def _del_handler(self, header, body):
+
+        uid, error = self._get_item_id(header["path"],
+                                       header["method"])
+
+        if (error != None):
+            return res.buid_id_error(error)
+
+        response, status = self.cache.delete(uid)
+
+        # if the entry it's backed up in disc
+        # or if the entry was not there,
+        # have to check in FileServer
+        if (status == res.IN_DISC_STATUS or
+                status == res.NOT_FOUND_STATUS):
+            response, status = self.fs.delete(uid)
+
+        return response, status
+
+
+    def _handle_request(self, header, body):
+
+        handler = self.handlers.get(header["method"].lower())
+
+        return handler(header, body)
+
 
     def exec_request(self, req_header, req_body):
 
-        body = ""
-        status = ""
-
-        fs_id, path, error = self._handle_request(req_header['method'],
-                                                  req_header['path'])
-
-        if (error != ""):
-            return response.build_id_error(error)
-
-        req_header['path'] = path
-
-        req = protocol.encode_request(req_header, req_body)
-        
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        try:
-            
-            s.connect((fs_id, 9999))
-            
-            s.sendall(req.encode())
-            
-            res = protocol.decode_response(s)
-            s.close()
-
-        except socket.error:
-            return response.build_internal_error()
-
-        status = res['status']
-        body = res['body']
+        body, status = self._handle_request(req_header,
+                                            req_body)
 
         return body, status
 

@@ -37,7 +37,7 @@ class Replier(Thread):
             # Log request and response status
             logger.log('(method: {}, path: {}, res_status: {})'.format(
                             header["method"],
-                            header["path"],
+                            header["uid"],
                             status), "info", 'fs-server', self.log_queue)
             
             res = protocol.encode_response(res_body, status)

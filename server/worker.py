@@ -6,17 +6,21 @@ sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 import utils.logger as logger
 import utils.parser as parser
 
+from processor import HttpProcessor
+
 from threading import Thread
 from multiprocessing import Process, Queue
 
 class Worker(Process):
 
-    def __init__(self, wid, app, server_socket, log_queue):
+    def __init__(self, wid, server_socket,
+                    log_queue, cache,
+                    url_fs, num_fs):
 
         self.server_socket = server_socket
         self.log_queue = log_queue
         self.wid = wid
-        self.app = app
+        self.app = HttpProcessor(num_fs, url_fs, cache)
 
         super(Worker, self).__init__()
 

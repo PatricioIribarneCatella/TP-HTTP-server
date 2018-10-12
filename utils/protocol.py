@@ -8,7 +8,7 @@ import json
 #
 # Request:
 #   ---------------------------------------------------
-#   | OPCODE | '\n' | PATH | '\n' | LEN | '\n' | DATA |
+#   | OPCODE | '\n' | UID | '\n' | LEN | '\n' | DATA |
 #   ---------------------------------------------------
 #
 # Response:
@@ -45,14 +45,14 @@ def _get_line(connection, delimeter):
 
     return line.rstrip('\r')
 
-def encode_request(header, body):
+def encode_request(uid, method, body):
 
     body = json.dumps(body)
 
-    method = header['method'].lower()
+    method = method.lower()
 
-    req = "{opcode}\n{path}\n{length}\n{data}".format(opcode=opcodes[method],
-                                                      path=header['path'],
+    req = "{opcode}\n{uid}\n{length}\n{data}".format(opcode=opcodes[method],
+                                                      uid=uid,
                                                       length=str(len(body)),
                                                       data=body)
 
@@ -62,7 +62,7 @@ def decode_request(connection):
 
     opcode = _get_line(connection, '\n')
 
-    path = _get_line(connection, '\n')
+    uid = _get_line(connection, '\n')
 
     length = _get_line(connection, '\n')
 
@@ -73,7 +73,7 @@ def decode_request(connection):
 
     method = methods[opcode].upper()
 
-    return {"method": method, "path": path}, body
+    return {"method": method, "uid": uid}, body
 
 def encode_response(body, status):
 

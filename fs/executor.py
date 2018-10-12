@@ -1,7 +1,7 @@
 import sys
 from os import path
 
-from cache import Cache
+from cache import FileCache
 from filemanager import FileManager
 
 from multiprocessing import Process
@@ -27,7 +27,7 @@ class RequestExec(Process):
         }
 
         self.fm = FileManager(STORE_DIR)
-        self.cache = Cache(cache_size)
+        self.cache = FileCache(cache_size)
 
         super(RequestExec, self).__init__()
 
@@ -43,7 +43,7 @@ class RequestExec(Process):
 
     def _get_handler(self, header, body):
         
-        uid = header['path'].split("/")[3]
+        uid = header['uid']
         
         data, status = self.cache.get(uid)
 
@@ -73,7 +73,7 @@ class RequestExec(Process):
 
     def _post_handler(self, header, body):
 
-        uid = header['path'].split("/")[3]
+        uid = header['uid']
 
         # store the new item with the flag
         # 'in_disc' turn off because the item
@@ -84,7 +84,7 @@ class RequestExec(Process):
 
     def _put_handler(self, header, body):
 
-        uid = header['path'].split("/")[3]
+        uid = header['uid']
 
         response, status = self.cache.update(uid, body)
 
@@ -109,7 +109,7 @@ class RequestExec(Process):
 
     def _del_handler(self, header, body):
 
-        uid = header['path'].split("/")[3]
+        uid = header['uid']
 
         response, status = self.cache.delete(uid)
         
