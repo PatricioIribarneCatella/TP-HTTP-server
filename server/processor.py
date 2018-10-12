@@ -6,7 +6,7 @@ from fsmanager import FileServerManager
 
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-import utils.responses as response
+import utils.responses as res
 
 class HttpProcessor(object):
 
