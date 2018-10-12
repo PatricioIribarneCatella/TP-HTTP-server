@@ -22,9 +22,9 @@ class FileServerManager(object):
 
         return self.url_fs + str(h)
 
-    def _exec_request(self, uid, method, body):
+    def _exec_request(self, uid, body, method):
 
-        fs_id = self._get_file_server_url()
+        fs_id = self._get_file_server_url(uid)
 
         req = protocol.encode_request(uid, method, body)
         
@@ -49,18 +49,18 @@ class FileServerManager(object):
 
     def get(self, uid):
 
-        return self._exec_request(uid, "GET", "")
+        return self._exec_request(uid, "", "GET")
 
     def post(self, uid, data):
 
-        return self._exec_request(uid, "POST", data)
+        return self._exec_request(uid, data, "POST")
 
     def put(self, uid, data):
 
-        return self._exec_request(uid, "PUT", data)
+        return self._exec_request(uid, data, "PUT")
 
     def delete(self, uid):
 
-        return self._exec_request(uid, "DELETE", "")
+        return self._exec_request(uid, "", "DELETE")
 
 
