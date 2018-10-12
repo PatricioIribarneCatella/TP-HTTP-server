@@ -40,6 +40,16 @@ class HttpProcessor(object):
 
         return uid, None
 
+
+    def _store_item(self, uid, data, in_disc):
+
+        response, status = self.cache.put(uid, body, in_disc)
+
+        if (status == res.CACHE_FULL_STATUS or
+                status == res.CACHE_ZERO_SIZE_STATUS):
+            self.fs.post(response["uid"],
+                                response["data"])
+
     def _get_handler(self, header, body):
 
         uid, error = self._get_item_id(header["path"],
@@ -92,11 +102,51 @@ class HttpProcessor(object):
 
     def _put_handler(self, header, body):
 
-        return res.build_successful("")
+        uid, error = self._get_item_id(header["path"],
+                                       header["method"])
+
+        if (error != None):
+            return res.buid_id_error(error)
+
+        response, status = self.cache.update(uid, body)
+
+        # cache is zero size, then directly
+        # store the new data, it could return an 
+        # error message if there were no such file
+        if (status == res.CACHE_ZERO_SIZE_STATUS):
+            return self.fs.put(uid, body)
+
+        # the item was not in the cache
+        if (status == res.NOT_FOUND_STATUS):
+
+            if not self.fs.check(uid):
+                return res.build_not_found_error()
+
+            # store the update of the item with
+            # the flag 'in_disc' turn on because
+            # there is a copy of it in disc
+            self._store_item(uid, body, 1)
+
+        return res.build_successful({})
 
     def _del_handler(self, header, body):
 
-        return res.build_successful("")
+        uid, error = self._get_item_id(header["path"],
+                                       header["method"])
+
+        if (error != None):
+            return res.buid_id_error(error)
+
+        response, status = self.cache.delete(uid)
+
+        # if the entry it's backed up in disc
+        # or if the entry was not there,
+        # have to check in FileServer
+        if (status == res.IN_DISC_STATUS or
+                status == res.NOT_FOUND_STATUS):
+            response, status = self.fs.delete(uid)
+
+        return response, status
 
 
     def _handle_request(self, header, body):
