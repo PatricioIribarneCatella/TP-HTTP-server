@@ -12,7 +12,7 @@ from os import path
 
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-import utils.cache as Cache
+from utils.cache import Cache
 import utils.responses as response
 
 class FileCache(Cache):
