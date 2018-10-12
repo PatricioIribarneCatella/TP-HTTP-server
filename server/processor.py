@@ -2,7 +2,7 @@ import sys
 import uuid
 from os import path
 
-from fileservermanager import FileServerManager
+from fsmanager import FileServerManager
 
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
