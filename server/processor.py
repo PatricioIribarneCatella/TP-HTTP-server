@@ -85,8 +85,8 @@ class HttpProcessor(object):
 
         if (status == res.CACHE_FULL_STATUS or
                 status == res.CACHE_ZERO_SIZE_STATUS):
-            self.fs.post(response["uid"],
-                         response["data"])
+            return self.fs.post(response["uid"],
+                                response["data"])
 
         return res.build_successful({'id': uid})
 
