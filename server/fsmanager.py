@@ -5,7 +5,7 @@ from os import path
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 import utils.protocol as protocol
-import utils.responses as res
+import utils.responses as response
 
 class FileServerManager(object):
 
@@ -41,7 +41,7 @@ class FileServerManager(object):
             s.close()
 
         except socket.error:
-            return res.build_internal_error()
+            return response.build_internal_error()
 
         status = res['status']
         body = res['body']
