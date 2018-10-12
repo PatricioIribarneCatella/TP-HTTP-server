@@ -1,7 +1,7 @@
 import sys
 from os import path
 
-from cache import Cache
+from cache import FileCache
 from filemanager import FileManager
 
 from multiprocessing import Process
@@ -27,7 +27,7 @@ class RequestExec(Process):
         }
 
         self.fm = FileManager(STORE_DIR)
-        self.cache = Cache(cache_size)
+        self.cache = FileCache(cache_size)
 
         super(RequestExec, self).__init__()
 

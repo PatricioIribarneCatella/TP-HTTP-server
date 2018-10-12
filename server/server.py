@@ -7,7 +7,7 @@ sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 import utils.logger as logger
 from utils.socket import Socket
 
-from cache import Cache
+from cache import ConcurrentCache
 from worker import Worker
 
 from multiprocessing import Process, Queue, Manager
@@ -32,7 +32,7 @@ class Server(object):
         workers = []
         log_queue = Queue()
 
-        cache = Cache(self.cache_size, Manager())
+        cache = ConcurrentCache(self.cache_size, Manager())
 
         # Create pool of workers
         for i in range(self.num_workers):
